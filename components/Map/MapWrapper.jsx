@@ -26,16 +26,18 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
   const imageWidth = 100; 
   const bounds = [[0, 0], [imageHeight, imageWidth]]; 
   
-  // OFFLINE MODE PATH (Relative for GitHub Pages compatibility)
+  // OFFLINE MODE PATH (Relative for GitHub Pages / Hostinger compatibility)
   const mapUrl = 'assets/images/background_map.jpg';
 
   // State to track if the local map file is actually present
   const [mapError, setMapError] = useState(false);
+  const [attemptedUrl, setAttemptedUrl] = useState('');
 
   useEffect(() => {
     // Pre-check if image exists to show a helpful error if missing
     const img = new Image();
     img.src = mapUrl;
+    setAttemptedUrl(img.src); // Capture the resolved URL for debugging
     img.onerror = () => setMapError(true);
   }, []);
 
@@ -48,8 +50,11 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
           <AlertTriangle size={64} className="text-red-500 mb-4" />
           <h2 className="text-3xl font-bold mb-2">Chybí soubor mapy</h2>
           <p className="text-xl mb-6 opacity-80">Background map file is missing.</p>
-          <div className="bg-[#2d2a24] p-6 rounded-lg border border-[#c5a065] font-mono text-sm text-left">
-            <p className="mb-2 text-[#c5a065]">Please upload the file to:</p>
+          <div className="bg-[#2d2a24] p-6 rounded-lg border border-[#c5a065] font-mono text-sm text-left max-w-2xl overflow-hidden break-all">
+            <p className="mb-2 text-[#c5a065]">Looking for file at:</p>
+            <p className="text-white mb-4 bg-black p-2 rounded">{attemptedUrl}</p>
+            
+            <p className="mb-2 text-[#c5a065]">Please ensure your Git repo has:</p>
             <p className="text-white">public/assets/images/background_map.jpg</p>
             <p className="mt-4 text-[#c5a065] text-xs">Ensure it is a SQUARE image for best results.</p>
           </div>
