@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, ImageOverlay, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import CustomMarker from './CustomMarker.jsx';
+import TrafficLayer from './TrafficLayer.jsx';
 import { AlertTriangle } from 'lucide-react';
 
 // SQUARE FORMAT CONFIGURATION (1:1 Aspect Ratio)
@@ -132,6 +133,9 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
               zIndex={1}
             />
           )}
+
+          {/* New Animation Layer: Ships & Creatures */}
+          <TrafficLayer bounds={mapBounds} />
           
           {validLocations.map((loc) => (
             <CustomMarker
