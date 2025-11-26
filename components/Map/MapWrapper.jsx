@@ -33,7 +33,7 @@ const MapController = ({ resetTrigger, bounds, minZoom }) => {
   return null;
 };
 
-const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrigger }) => {
+const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrigger, isSetupMode, onUpdateLocation }) => {
   // SQUARE FORMAT CONFIGURATION (1:1 Aspect Ratio)
   const imageWidth = 1000; 
   const imageHeight = 1000;
@@ -66,7 +66,6 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
        // Use Math.max to "Cover" the area. 
        // If window is wide, we fit to width (cropping top/bottom).
        // If window is tall, we fit to height (cropping sides).
-       // This satisfies "We cant zoom out more then width/height of picture"
        const scale = Math.max(widthRatio, heightRatio);
        
        const zoomLevel = Math.log2(scale);
@@ -113,7 +112,7 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
           maxZoom={minZoom + 3} 
           zoomSnap={0.01} // Smoother fit
           zoomDelta={0.2}
-          wheelPxPerZoomLevel={120} 
+          wheelPxPerZoomLevel={200} // Slower zoom
           scrollWheelZoom={true}
           doubleClickZoom={false}
           attributionControl={false}
@@ -125,6 +124,8 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
             <ImageOverlay
               url={mapUrl}
               bounds={bounds}
+              opacity={1}
+              zIndex={1}
             />
           )}
           
@@ -137,6 +138,8 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
               data={loc}
               isActive={selectedLocationId === loc.id}
               onClick={() => onLocationSelect(loc)}
+              isSetupMode={isSetupMode}
+              onDragEnd={onUpdateLocation}
             />
           ))}
 
