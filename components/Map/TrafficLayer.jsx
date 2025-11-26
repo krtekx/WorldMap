@@ -1,22 +1,26 @@
+
 import React from 'react';
 import { SVGOverlay } from 'react-leaflet';
 
 const TrafficLayer = ({ bounds }) => {
-  // Map Dimensions are 1000x1000 based on MapWrapper config
+  // Map Dimensions: 8192 x 8192
   // Map Space: (0,0) is Bottom-Left.
   // SVG Space: (0,0) is Top-Left.
-  // We must flip the Y coordinate: svgY = 1000 - mapY.
+  // We must flip the Y coordinate: svgY = 8192 - mapY.
   
-  const toSvgY = (mapY) => 1000 - mapY;
+  const MAP_SIZE = 8192;
+  const toSvgY = (mapY) => MAP_SIZE - mapY;
+
+  // SCALING HELPERS
+  // Our points.js data is 0-100.
+  // We need to convert that to 0-8192 for the SVG pathing
+  const s = (val) => (val / 100) * MAP_SIZE;
 
   // ROUTE DEFINITIONS (Start -> End)
-  // Coordinates derived from points.js (multiplied by 10)
-  // NY (281, 554) -> Europe/Moravska (approx 450, 550) -> extended to Atlantic
-  // Suez (573, 524) -> India/Bombay (684, 482)
-  // Tokyo (856, 571) -> Sydney (879, 343)
-
+  // Coordinates derived from points.js (approximate locations)
+  
   return (
-    <SVGOverlay bounds={bounds}>
+    <SVGOverlay attributes={{ viewBox: `0 0 ${MAP_SIZE} ${MAP_SIZE}` }} bounds={bounds}>
       {/* Defs for gradients or filters */}
       <defs>
         <filter id="glow">
@@ -31,75 +35,69 @@ const TrafficLayer = ({ bounds }) => {
       {/* --- SHIP ROUTES --- */}
       
       {/* Route 1: Atlantic Crossing (Europe <-> America) */}
-      {/* Path: Curve from NY (281, 554) towards Europe */}
       <path
         id="route-atlantic"
-        d={`M 281,${toSvgY(554)} Q 380,${toSvgY(450)} 500,${toSvgY(580)}`}
+        d={`M ${s(28.1)},${toSvgY(s(55.4))} Q ${s(38)},${toSvgY(s(45))} ${s(50)},${toSvgY(s(58))}`}
         fill="none"
         stroke="#c5a065"
-        strokeWidth="1.5"
-        strokeDasharray="4,6"
-        opacity="0.4"
+        strokeWidth="6"
+        strokeDasharray="20,30"
+        opacity="0.3"
       />
       {/* Moving Ship */}
-      <circle r="3" fill="#8c3a3a" opacity="0.8">
-        <animateMotion dur="14s" repeatCount="indefinite" rotate="auto" keyPoints="0;1" keyTimes="0;1">
+      <g>
+        <animateMotion dur="25s" repeatCount="indefinite" rotate="auto">
           <mpath href="#route-atlantic" />
         </animateMotion>
-      </circle>
+        <circle r="12" fill="#8c3a3a" stroke="white" strokeWidth="2" />
+        <text y="-25" x="-20" fontSize="40" fill="#c5a065" fontWeight="bold" style={{ textShadow: '2px 2px 0 #000' }}>
+           S.S. Holzmaister
+        </text>
+      </g>
 
       {/* Route 2: Spice Route (Suez -> India) */}
       <path
         id="route-indian"
-        d={`M 573,${toSvgY(524)} Q 600,${toSvgY(440)} 684,${toSvgY(482)}`}
+        d={`M ${s(57.3)},${toSvgY(s(52.4))} Q ${s(60)},${toSvgY(s(44))} ${s(68.4)},${toSvgY(s(48.2))}`}
         fill="none"
         stroke="#c5a065"
-        strokeWidth="1.5"
-        strokeDasharray="4,6"
-        opacity="0.4"
+        strokeWidth="6"
+        strokeDasharray="20,30"
+        opacity="0.3"
       />
-      <circle r="3" fill="#8c3a3a" opacity="0.8">
-        <animateMotion dur="10s" begin="2s" repeatCount="indefinite" rotate="auto">
+      <g>
+        <animateMotion dur="20s" begin="2s" repeatCount="indefinite" rotate="auto">
           <mpath href="#route-indian" />
         </animateMotion>
-      </circle>
+        <circle r="12" fill="#8c3a3a" stroke="white" strokeWidth="2" />
+        <text y="-25" x="-20" fontSize="40" fill="#c5a065" fontWeight="bold" style={{ textShadow: '2px 2px 0 #000' }}>
+           Trade Route
+        </text>
+      </g>
 
       {/* Route 3: Pacific (Japan -> Australia) */}
       <path
         id="route-pacific"
-        d={`M 856,${toSvgY(571)} Q 920,${toSvgY(450)} 879,${toSvgY(343)}`}
+        d={`M ${s(85.6)},${toSvgY(s(57.1))} Q ${s(92)},${toSvgY(s(45))} ${s(87.9)},${toSvgY(s(34.3))}`}
         fill="none"
         stroke="#c5a065"
-        strokeWidth="1.5"
-        strokeDasharray="4,6"
-        opacity="0.4"
+        strokeWidth="6"
+        strokeDasharray="20,30"
+        opacity="0.3"
       />
-      <circle r="3" fill="#8c3a3a" opacity="0.8">
-        <animateMotion dur="18s" begin="5s" repeatCount="indefinite" rotate="auto">
+      <g>
+        <animateMotion dur="30s" begin="5s" repeatCount="indefinite" rotate="auto">
           <mpath href="#route-pacific" />
         </animateMotion>
-      </circle>
-
-
-      {/* --- SEA CREATURES --- */}
-
-      {/* Octopus in Deep Pacific (Right side) */}
-      <g transform={`translate(920, ${toSvgY(200)})`} opacity="0.6">
-        <text fontSize="40" style={{ filter: 'url(#glow)' }}>
-          🐙
-          <animate attributeName="opacity" values="0;0.5;0" dur="12s" repeatCount="indefinite" />
-          <animateTransform attributeName="transform" type="translate" values="0 0; 0 -10; 0 0" dur="6s" repeatCount="indefinite" />
+        <circle r="12" fill="#8c3a3a" stroke="white" strokeWidth="2" />
+        <text y="-25" x="-20" fontSize="40" fill="#c5a065" fontWeight="bold" style={{ textShadow: '2px 2px 0 #000' }}>
+           Expedition
         </text>
       </g>
 
-      {/* Whale in South Atlantic (Left-Center bottom) */}
-      <g transform={`translate(400, ${toSvgY(250)})`} opacity="0.6">
-        <text fontSize="50" style={{ filter: 'url(#glow)' }}>
-          🐋
-          <animate attributeName="opacity" values="0;0.4;0" dur="15s" begin="3s" repeatCount="indefinite" />
-          <animateTransform attributeName="transform" type="translate" values="0 0; 20 5; 0 0" dur="15s" repeatCount="indefinite" />
-        </text>
-      </g>
+      {/* --- STATIC AMBIENT DOTS (Placeholders) --- */}
+      <circle cx={s(40)} cy={toSvgY(s(25))} r="10" fill="#5c4d3c" opacity="0.5" />
+      <text x={s(40)} y={toSvgY(s(25)) - 20} fontSize="30" fill="#fff" opacity="0.5">Deep Sea</text>
 
     </SVGOverlay>
   );

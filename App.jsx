@@ -6,7 +6,7 @@ import InfoModal from './components/UI/InfoModal.jsx';
 import Screensaver from './components/UI/Screensaver.jsx';
 import SoundControl from './components/UI/SoundControl.jsx';
 import { useIdleTimer } from './hooks/useIdleTimer.js';
-import { Save, Copy, X } from 'lucide-react';
+import { Save, Copy, X, Gem } from 'lucide-react';
 import { SoundProvider, useSound } from './contexts/SoundContext.jsx';
 import pointsData from './data/points.js';
 
@@ -20,15 +20,19 @@ const AppContent = () => {
   // SETUP MODE STATE
   const [isSetupMode, setIsSetupMode] = useState(false);
   const [showJsonExport, setShowJsonExport] = useState(false);
+  
+  // GEMS STATE
+  const [foundGem, setFoundGem] = useState(null);
 
   const { playSound } = useSound();
 
   // Function to handle Reset (Screen Saver or Idle)
   const handleIdle = () => {
     if (!isSetupMode) {
-      if (!isIdle) playSound('ui_reset'); // Play sound when going idle
+      if (!isIdle) playSound('ui_reset');
       setIsIdle(true);
       setSelectedLocation(null);
+      setFoundGem(null);
       setResetMapTrigger(prev => prev + 1);
     }
   };
@@ -37,17 +41,21 @@ const AppContent = () => {
 
   const handleLocationSelect = (location) => {
     if (!isSetupMode) {
-      // Note: Click sound is handled in CustomMarker, 
-      // Open sound is handled here for the modal appearance
       playSound('ui_open'); 
       setSelectedLocation(location);
       resetIdleTimer();
     }
   };
 
+  const handleGemFound = (gem) => {
+     setFoundGem(gem);
+     resetIdleTimer();
+  };
+
   const handleCloseModal = () => {
     if (selectedLocation) playSound('ui_close');
     setSelectedLocation(null);
+    setFoundGem(null);
     resetIdleTimer();
   };
 
@@ -58,6 +66,7 @@ const AppContent = () => {
   };
 
   const handleUpdateLocation = (id, newX, newY) => {
+    // Input is scaled to 0-1000 from setup mode drag
     setLocations(prev => prev.map(loc => 
       loc.id === id 
         ? { ...loc, x: Number(newX.toFixed(1)), y: Number(newY.toFixed(1)) } 
@@ -78,21 +87,18 @@ const AppContent = () => {
     <Layout>
       <Screensaver isActive={isIdle} onTouch={handleWakeUp} />
       
-      {/* SOUND CONTROL */}
       <SoundControl />
 
-      {/* HIDDEN TRIGGER BUTTON FOR SETUP MODE */}
       <div 
         className="absolute top-0 right-0 w-12 h-12 z-[9000] cursor-default"
         onClick={() => setIsSetupMode(prev => !prev)}
         title="Toggle Setup Mode"
       ></div>
 
-      {/* SETUP MODE UI BAR */}
       {isSetupMode && (
         <div className="absolute top-0 left-0 right-0 z-[8000] bg-blue-900/90 text-white p-4 flex justify-between items-center shadow-xl backdrop-blur">
-          <div className="font-mono font-bold animate-pulse">🔧 SETUP MODE ACTIVE</div>
-          <div className="text-xs opacity-70">Drag points to reposition. Click Generate when done.</div>
+          <div className="font-mono font-bold animate-pulse">🔧 SETUP MODE (8K)</div>
+          <div className="text-xs opacity-70">Drag points. Coordinates will normalize to 0-100 scale.</div>
           <div className="flex gap-2">
             <button 
               onClick={() => setShowJsonExport(true)}
@@ -110,7 +116,6 @@ const AppContent = () => {
         </div>
       )}
 
-      {/* JSON EXPORT MODAL */}
       {showJsonExport && (
         <div className="absolute inset-0 z-[9500] bg-black/90 flex items-center justify-center p-8">
           <div className="bg-gray-900 w-full max-w-4xl h-[80vh] rounded-xl flex flex-col p-6 border border-gray-700">
@@ -142,12 +147,31 @@ const AppContent = () => {
         resetTrigger={resetMapTrigger + (isIdle ? 1 : 0)}
         isSetupMode={isSetupMode}
         onUpdateLocation={handleUpdateLocation}
+        onGemFound={handleGemFound}
       />
 
       <InfoModal 
         location={selectedLocation} 
         onClose={handleCloseModal} 
       />
+
+      {/* REWARD MODAL FOR GEMS */}
+      {foundGem && (
+        <div className="fixed inset-0 z-[7000] flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={handleCloseModal}>
+            <div className="bg-[#1a1814] border-4 border-[#c5a065] p-10 rounded-xl text-center shadow-2xl transform scale-100 animate-[bounce_0.5s_ease-out]" onClick={e => e.stopPropagation()}>
+                <Gem size={64} className="mx-auto text-blue-400 mb-4 animate-pulse" />
+                <h2 className="text-3xl font-serif text-[#c5a065] mb-2">Hidden Artifact Found!</h2>
+                <p className="text-[#e8dcc5] mb-6">You have discovered a secret location.</p>
+                <div className="bg-black/50 p-4 rounded border border-white/10">
+                    <p className="text-sm text-gray-400 uppercase tracking-widest mb-1">Secret Code</p>
+                    <p className="text-4xl font-mono font-bold text-white tracking-widest">{foundGem.code}</p>
+                </div>
+                <button onClick={handleCloseModal} className="mt-8 px-6 py-2 bg-[#c5a065] text-[#1a1814] font-bold rounded hover:bg-[#d4b98c]">
+                    Close
+                </button>
+            </div>
+        </div>
+      )}
     </Layout>
   );
 };
