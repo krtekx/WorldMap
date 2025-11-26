@@ -21,7 +21,7 @@ const Layout = ({ children }) => {
 
       {/* Version Label */}
       <div className="absolute bottom-2 left-2 z-[2000] text-white/30 text-[10px] font-mono pointer-events-none select-none">
-        v2.8 • {new Date().toLocaleDateString('cs-CZ')}
+        v2.9 • {new Date().toLocaleDateString('cs-CZ')}
       </div>
     </div>
   );
