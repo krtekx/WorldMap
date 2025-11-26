@@ -41,6 +41,12 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
     img.onerror = () => setMapError(true);
   }, []);
 
+  // Defensive filtering: Ensure we only render markers with valid numbers
+  const validLocations = (locations || []).filter(loc => 
+    loc.y !== undefined && loc.y !== null && !isNaN(Number(loc.y)) &&
+    loc.x !== undefined && loc.x !== null && !isNaN(Number(loc.x))
+  );
+
   return (
     <div className="h-full w-full bg-[#1a1814] relative overflow-hidden flex items-center justify-center">
       
@@ -63,6 +69,8 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
 
       <MapContainer
         crs={L.CRS.Simple}
+        center={[50, 50]} // Explicit center prevents NaN errors on init
+        zoom={1}
         bounds={bounds}
         maxBounds={[[0, 0], [imageHeight, imageWidth]]}
         maxBoundsViscosity={1.0} 
@@ -86,10 +94,10 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
           />
         )}
         
-        {locations.map((loc) => (
+        {validLocations.map((loc) => (
           <CustomMarker
             key={loc.id}
-            position={[loc.y, loc.x]} 
+            position={[Number(loc.y), Number(loc.x)]} 
             data={loc}
             isActive={selectedLocationId === loc.id}
             onClick={() => onLocationSelect(loc)}
