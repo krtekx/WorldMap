@@ -18,7 +18,7 @@ const InfoModal = ({ location, onClose }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[5000] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 sm:p-10"
+        className="fixed inset-0 z-[5000] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-10"
         onClick={onClose}
       >
         <motion.div
@@ -38,13 +38,14 @@ const InfoModal = ({ location, onClose }) => {
           </button>
 
           {/* Image Section */}
-          <div className="w-full md:w-1/2 h-64 md:h-auto relative bg-[#2d2a24] flex items-center justify-center overflow-hidden">
+          <div className="w-full md:w-1/2 h-64 md:h-auto relative bg-[#1a1814] flex items-center justify-center overflow-hidden border-b md:border-b-0 md:border-r border-[#d4b98c]">
             {!imgError ? (
               <img
                 src={location.image}
                 alt={location.title}
                 onError={() => setImgError(true)}
-                className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity duration-500"
+                // Changed to object-contain so the whole artifact is visible without cropping
+                className="w-full h-full object-contain opacity-100"
               />
             ) : (
               <div className="flex flex-col items-center justify-center text-[#8c7b5d]/50 p-6 text-center w-full">
@@ -59,8 +60,8 @@ const InfoModal = ({ location, onClose }) => {
                 </div>
               </div>
             )}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#1a1814] to-transparent p-4">
-              <span className="inline-flex items-center text-white/90 text-sm font-medium tracking-wider bg-[#8c3a3a] px-3 py-1 rounded-sm">
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#1a1814] to-transparent p-4 pointer-events-none">
+              <span className="inline-flex items-center text-white/90 text-sm font-medium tracking-wider bg-[#8c3a3a] px-3 py-1 rounded-sm shadow-lg">
                  {location.region}
               </span>
             </div>

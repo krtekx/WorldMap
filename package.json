@@ -14,7 +14,9 @@
     "framer-motion": "10.16.4",
     "lucide-react": "0.292.0",
     "leaflet": "1.9.4",
-    "react-leaflet": "4.2.1"
+    "react-leaflet": "4.2.1",
+    "@vitejs/plugin-react": "^5.1.1",
+    "vite": "^7.2.4"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

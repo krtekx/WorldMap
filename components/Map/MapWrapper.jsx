@@ -21,6 +21,7 @@ const MapController = ({ resetTrigger, bounds }) => {
 
 const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrigger }) => {
   // SQUARE FORMAT CONFIGURATION (1:1 Aspect Ratio)
+  // Ensure your background_map.jpg is square, or Leaflet will stretch it to fit this square.
   const imageHeight = 100;
   const imageWidth = 100; 
   const bounds = [[0, 0], [imageHeight, imageWidth]]; 
@@ -49,7 +50,7 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
           <p className="text-xl mb-6 opacity-80">Background map file is missing.</p>
           <div className="bg-[#2d2a24] p-6 rounded-lg border border-[#c5a065] font-mono text-sm text-left">
             <p className="mb-2 text-[#c5a065]">Please upload the file to:</p>
-            <p className="text-white">/public/assets/images/background_map.jpg</p>
+            <p className="text-white">public/assets/images/background_map.jpg</p>
             <p className="mt-4 text-[#c5a065] text-xs">Ensure it is a SQUARE image for best results.</p>
           </div>
         </div>
