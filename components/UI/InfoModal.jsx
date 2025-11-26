@@ -1,13 +1,21 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, ImageOff, FolderOpen } from 'lucide-react';
 
 const InfoModal = ({ location, onClose }) => {
   const [imgError, setImgError] = useState(false);
+  const [imgSrc, setImgSrc] = useState('');
 
-  // Reset error state when location changes
+  // Reset error state and update image source with cache buster when location changes
   useEffect(() => {
-    setImgError(false);
+    if (location) {
+      setImgError(false);
+      // Přidání časového razítka pro vynucení nového načtení obrázku
+      // Zkontrolujeme, zda URL už obsahuje '?', abychom použili správný oddělovač
+      const separator = location.image.includes('?') ? '&' : '?';
+      setImgSrc(`${location.image}${separator}t=${new Date().getTime()}`);
+    }
   }, [location]);
 
   if (!location) return null;
@@ -27,7 +35,7 @@ const InfoModal = ({ location, onClose }) => {
           exit={{ scale: 0.9, y: 20, opacity: 0 }}
           transition={{ type: "spring", damping: 20, stiffness: 300 }}
           className="bg-[#f4ebe1] rounded-xl overflow-hidden shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col md:flex-row relative border-4 border-[#d4b98c]"
-          onClick={(e) => e.stopPropagation()} // Prevent closing when clicking content
+          onClick={(e) => e.stopPropagation()} 
         >
           {/* Close Button */}
           <button
@@ -41,10 +49,9 @@ const InfoModal = ({ location, onClose }) => {
           <div className="w-full md:w-1/2 h-64 md:h-auto relative bg-[#1a1814] flex items-center justify-center overflow-hidden border-b md:border-b-0 md:border-r border-[#d4b98c]">
             {!imgError ? (
               <img
-                src={location.image}
+                src={imgSrc}
                 alt={location.title}
                 onError={() => setImgError(true)}
-                // Changed to object-contain so the whole artifact is visible without cropping
                 className="w-full h-full object-contain opacity-100"
               />
             ) : (

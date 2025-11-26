@@ -5,7 +5,7 @@ import L from 'leaflet';
 import CustomMarker from './CustomMarker.jsx';
 import TrafficLayer from './TrafficLayer.jsx';
 import MagnifyingGlass from './MagnifyingGlass.jsx';
-import { AlertTriangle, Gem } from 'lucide-react'; // Odstraněn Search icon
+import { AlertTriangle } from 'lucide-react'; 
 import { useSound } from '../../contexts/SoundContext';
 
 // ULTRA HD SQUARE FORMAT CONFIGURATION (1:1 Aspect Ratio)
@@ -50,17 +50,26 @@ const MapController = ({ resetTrigger, bounds, minZoom, setMapInstance }) => {
   return null;
 };
 
-const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrigger, isSetupMode, onUpdateLocation, onGemFound }) => {
-  const mapUrl = 'assets/images/background_map.jpg';
+const MapWrapper = ({ 
+    locations, 
+    onLocationSelect, 
+    selectedLocationId, 
+    resetTrigger, 
+    isSetupMode, 
+    onUpdateLocation, 
+    onGemFound,
+    glassPosition, 
+    onUpdateGlassPosition 
+}) => {
+  // CACHE BUSTING: Přidáme aktuální čas k URL, aby se obrázek vždy načetl znovu
+  const [mapUrl] = useState(`assets/images/background_map.jpg?t=${new Date().getTime()}`);
+  
   const [mapError, setMapError] = useState(false);
   const [attemptedUrl, setAttemptedUrl] = useState('');
   const [minZoom, setMinZoom] = useState(-1); 
   const { playSound } = useSound();
   
-  // Instance hlavní mapy pro lupu
   const [mainMapInstance, setMainMapInstance] = useState(null);
-
-  // Gems State
   const [foundGems, setFoundGems] = useState([]);
 
   useEffect(() => {
@@ -74,7 +83,6 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
        const windowHeight = window.innerHeight;
        const widthRatio = windowWidth / imageWidth;
        const heightRatio = windowHeight / imageHeight;
-       // Cover the screen
        const scale = Math.max(widthRatio, heightRatio);
        setMinZoom(Math.log2(scale));
     };
@@ -82,7 +90,7 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
     calculateZoom();
     window.addEventListener('resize', calculateZoom);
     return () => window.removeEventListener('resize', calculateZoom);
-  }, []);
+  }, [mapUrl]);
 
   const handleGemClick = (gem) => {
     if (!foundGems.includes(gem.id)) {
@@ -178,17 +186,16 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
         </MapContainer>
       )}
 
-      {/* LUPA JE NYNÍ VŽDY AKTIVNÍ A LEŽÍ NA 'STOLE' */}
       {mainMapInstance && (
         <MagnifyingGlass 
            mainMap={mainMapInstance}
            mapUrl={mapUrl}
            bounds={mapBounds}
            gems={HIDDEN_GEMS}
+           glassPosition={glassPosition}
+           onPositionChange={onUpdateGlassPosition}
         />
       )}
-
-      {/* Ovládací prvky vpravo dole - Lupa tlačítko odstraněno */}
       
       <div className="absolute inset-0 pointer-events-none z-[400] bg-[radial-gradient(circle,transparent_40%,#000000aa_100%)] shadow-inner mix-blend-multiply"></div>
     </div>
