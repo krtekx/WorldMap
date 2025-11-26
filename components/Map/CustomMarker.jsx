@@ -1,6 +1,8 @@
+
 import React, { useMemo, useRef } from 'react';
 import { Marker } from 'react-leaflet';
 import L from 'leaflet';
+import { useSound } from '../../contexts/SoundContext';
 
 // Create a custom DivIcon using pure HTML/CSS logic within Leaflet
 const createCustomIcon = (isActive, isSetupMode, data) => {
@@ -31,12 +33,14 @@ const createCustomIcon = (isActive, isSetupMode, data) => {
 
 const CustomMarker = ({ position, onClick, isActive, data, isSetupMode, onDragEnd }) => {
   const markerRef = useRef(null);
+  const { playSound } = useSound();
 
   const eventHandlers = useMemo(
     () => ({
       click: () => {
         // Prevent click when dragging
         if (!isSetupMode) {
+          playSound('ui_click');
           onClick();
         }
       },
@@ -44,14 +48,11 @@ const CustomMarker = ({ position, onClick, isActive, data, isSetupMode, onDragEn
         const marker = markerRef.current;
         if (marker && onDragEnd) {
           const latLng = marker.getLatLng();
-          // Convert Leaflet LatLng back to our 0-100 coordinate system
-          // In MapWrapper: position={[y * 10, x * 10]}
-          // So: y = lat / 10, x = lng / 10
           onDragEnd(data.id, latLng.lng / 10, latLng.lat / 10);
         }
       },
     }),
-    [onClick, onDragEnd, isSetupMode, data.id]
+    [onClick, onDragEnd, isSetupMode, data.id, playSound]
   );
 
   return (

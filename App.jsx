@@ -1,15 +1,17 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from './components/Layout.jsx';
 import MapWrapper from './components/Map/MapWrapper.jsx';
 import InfoModal from './components/UI/InfoModal.jsx';
 import Screensaver from './components/UI/Screensaver.jsx';
+import SoundControl from './components/UI/SoundControl.jsx';
 import { useIdleTimer } from './hooks/useIdleTimer.js';
 import { Save, Copy, X } from 'lucide-react';
-// Explicit relative import with extension to prevent resolution errors
+import { SoundProvider, useSound } from './contexts/SoundContext.jsx';
 import pointsData from './data/points.js';
 
-const App = () => {
-  // State for locations, initialized from the data file but mutable for Setup Mode
+// Internal component to handle logic that requires useSound context
+const AppContent = () => {
   const [locations, setLocations] = useState(pointsData);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [isIdle, setIsIdle] = useState(false);
@@ -19,37 +21,42 @@ const App = () => {
   const [isSetupMode, setIsSetupMode] = useState(false);
   const [showJsonExport, setShowJsonExport] = useState(false);
 
+  const { playSound } = useSound();
+
   // Function to handle Reset (Screen Saver or Idle)
   const handleIdle = () => {
-    // Disable idle reset if in setup mode to prevent losing work
     if (!isSetupMode) {
+      if (!isIdle) playSound('ui_reset'); // Play sound when going idle
       setIsIdle(true);
       setSelectedLocation(null);
-      setResetMapTrigger(prev => prev + 1); // Triggers map flyTo home
+      setResetMapTrigger(prev => prev + 1);
     }
   };
 
-  // Initialize idle timer (60 seconds)
   const resetIdleTimer = useIdleTimer(60000, handleIdle);
 
   const handleLocationSelect = (location) => {
     if (!isSetupMode) {
+      // Note: Click sound is handled in CustomMarker, 
+      // Open sound is handled here for the modal appearance
+      playSound('ui_open'); 
       setSelectedLocation(location);
-      resetIdleTimer(); // Reset timer on interaction
+      resetIdleTimer();
     }
   };
 
   const handleCloseModal = () => {
+    if (selectedLocation) playSound('ui_close');
     setSelectedLocation(null);
     resetIdleTimer();
   };
 
   const handleWakeUp = () => {
+    if (isIdle) playSound('ui_click');
     setIsIdle(false);
     resetIdleTimer();
   };
 
-  // Update location coordinates (Setup Mode)
   const handleUpdateLocation = (id, newX, newY) => {
     setLocations(prev => prev.map(loc => 
       loc.id === id 
@@ -71,7 +78,10 @@ const App = () => {
     <Layout>
       <Screensaver isActive={isIdle} onTouch={handleWakeUp} />
       
-      {/* HIDDEN TRIGGER BUTTON FOR SETUP MODE (Top Right Corner) */}
+      {/* SOUND CONTROL */}
+      <SoundControl />
+
+      {/* HIDDEN TRIGGER BUTTON FOR SETUP MODE */}
       <div 
         className="absolute top-0 right-0 w-12 h-12 z-[9000] cursor-default"
         onClick={() => setIsSetupMode(prev => !prev)}
@@ -139,6 +149,14 @@ const App = () => {
         onClose={handleCloseModal} 
       />
     </Layout>
+  );
+};
+
+const App = () => {
+  return (
+    <SoundProvider>
+      <AppContent />
+    </SoundProvider>
   );
 };
 
