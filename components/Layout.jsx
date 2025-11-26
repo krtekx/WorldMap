@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const Layout = ({ children }) => {
@@ -22,7 +21,7 @@ const Layout = ({ children }) => {
 
       {/* Version Label */}
       <div className="absolute bottom-2 left-2 z-[2000] text-white/30 text-[10px] font-mono pointer-events-none select-none">
-        v3.5 • {new Date().toLocaleDateString('cs-CZ')}
+        v3.7 • {new Date().toLocaleDateString('cs-CZ')}
       </div>
     </div>
   );

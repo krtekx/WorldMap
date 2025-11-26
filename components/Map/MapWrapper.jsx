@@ -5,7 +5,7 @@ import L from 'leaflet';
 import CustomMarker from './CustomMarker.jsx';
 import TrafficLayer from './TrafficLayer.jsx';
 import MagnifyingGlass from './MagnifyingGlass.jsx';
-import { AlertTriangle, Search, Gem } from 'lucide-react';
+import { AlertTriangle, Gem } from 'lucide-react'; // Odstraněn Search icon
 import { useSound } from '../../contexts/SoundContext';
 
 // ULTRA HD SQUARE FORMAT CONFIGURATION (1:1 Aspect Ratio)
@@ -14,7 +14,6 @@ const imageHeight = 8192;
 const mapBounds = [[0, 0], [imageHeight, imageWidth]]; 
 
 // HIDDEN GEMS DATA (Easter Eggs)
-// Random coordinates on the 8192 map
 const HIDDEN_GEMS = [
     { id: 'gem1', x: 2000, y: 2000, code: 'HLZ-1902' },
     { id: 'gem2', x: 6000, y: 5500, code: 'TRA-1888' },
@@ -58,8 +57,7 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
   const [minZoom, setMinZoom] = useState(-1); 
   const { playSound } = useSound();
   
-  // Magnifying Glass
-  const [isGlassActive, setIsGlassActive] = useState(false);
+  // Instance hlavní mapy pro lupu
   const [mainMapInstance, setMainMapInstance] = useState(null);
 
   // Gems State
@@ -88,7 +86,7 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
 
   const handleGemClick = (gem) => {
     if (!foundGems.includes(gem.id)) {
-        playSound('ui_click'); // Reuse click sound or add a gem sound
+        playSound('ui_click');
         setFoundGems(prev => [...prev, gem.id]);
         onGemFound(gem);
     }
@@ -106,12 +104,12 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
         <div className="absolute inset-0 z-[1000] flex flex-col items-center justify-center bg-black/80 text-[#e8dcc5] p-8 text-center">
           <AlertTriangle size={64} className="text-red-500 mb-4" />
           <h2 className="text-3xl font-bold mb-2">Chybí soubor mapy</h2>
-          <p className="text-xl mb-6 opacity-80">Background map file is missing.</p>
+          <p className="text-xl mb-6 opacity-80">Soubor s mapou nebyl nalezen.</p>
           <div className="bg-[#2d2a24] p-6 rounded-lg border border-[#c5a065] font-mono text-sm text-left max-w-2xl overflow-hidden break-all">
-            <p className="mb-2 text-[#c5a065]">Looking for file at:</p>
+            <p className="mb-2 text-[#c5a065]">Hledám soubor zde:</p>
             <p className="text-white mb-4 bg-black p-2 rounded">{attemptedUrl}</p>
             <p className="text-white">public/assets/images/background_map.jpg</p>
-            <p className="text-xs text-yellow-500 mt-4">Note: Ensure this is the 8192x8192px file.</p>
+            <p className="text-xs text-yellow-500 mt-4">Poznámka: Ujistěte se, že jde o soubor 8192x8192px.</p>
           </div>
         </div>
       )}
@@ -122,10 +120,10 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
           center={[imageHeight/2, imageWidth/2]} 
           zoom={minZoom}
           minZoom={minZoom}
-          maxZoom={minZoom + 4} // Allow deeper zoom for the huge map
+          maxZoom={minZoom + 4} 
           zoomSnap={0.01} 
           zoomDelta={0.2}
-          wheelPxPerZoomLevel={300} // Even slower zoom for handling huge distance
+          wheelPxPerZoomLevel={300}
           scrollWheelZoom={true}
           doubleClickZoom={false}
           attributionControl={false}
@@ -144,21 +142,18 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
 
           <TrafficLayer bounds={mapBounds} />
           
-          {/* Main Locations */}
           {validLocations.map((loc) => (
             <CustomMarker
               key={loc.id}
-              // Scale coordinates from 0-100 to 0-8192
               position={[Number(loc.y) * 81.92, Number(loc.x) * 81.92]} 
               data={loc}
               isActive={selectedLocationId === loc.id}
               onClick={() => onLocationSelect(loc)}
               isSetupMode={isSetupMode}
-              onDragEnd={(id, x, y) => onUpdateLocation(id, x / 8.192, y / 8.192)} // Normalize back to 0-1000 for internal logic if needed
+              onDragEnd={(id, x, y) => onUpdateLocation(id, x / 8.192, y / 8.192)}
             />
           ))}
 
-          {/* Hidden Gems (Tiny markers on main map) */}
           {HIDDEN_GEMS.map(gem => (
              <Marker
                 key={gem.id}
@@ -183,7 +178,8 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
         </MapContainer>
       )}
 
-      {isGlassActive && mainMapInstance && (
+      {/* LUPA JE NYNÍ VŽDY AKTIVNÍ A LEŽÍ NA 'STOLE' */}
+      {mainMapInstance && (
         <MagnifyingGlass 
            mainMap={mainMapInstance}
            mapUrl={mapUrl}
@@ -192,20 +188,7 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
         />
       )}
 
-      {/* Controls */}
-      <div className="absolute bottom-8 right-8 z-[500] flex flex-col gap-4">
-        <button
-          onClick={() => setIsGlassActive(!isGlassActive)}
-          className={`p-4 rounded-full shadow-2xl transition-all duration-300 border-2 ${
-            isGlassActive 
-              ? 'bg-[#c5a065] text-[#1a1814] border-[#e8dcc5] scale-110' 
-              : 'bg-[#1a1814]/80 text-[#c5a065] border-[#c5a065] hover:bg-[#2d2a24]'
-          }`}
-          title="Lupa (10x Zoom)"
-        >
-          <Search size={32} />
-        </button>
-      </div>
+      {/* Ovládací prvky vpravo dole - Lupa tlačítko odstraněno */}
       
       <div className="absolute inset-0 pointer-events-none z-[400] bg-[radial-gradient(circle,transparent_40%,#000000aa_100%)] shadow-inner mix-blend-multiply"></div>
     </div>
