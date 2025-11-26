@@ -3,7 +3,9 @@ import { Marker } from 'react-leaflet';
 import L from 'leaflet';
 
 // Create a custom DivIcon using pure HTML/CSS logic within Leaflet
-const createCustomIcon = (isActive, isSetupMode) => {
+const createCustomIcon = (isActive, isSetupMode, data) => {
+  const label = isSetupMode ? `${data.id}. ${data.title}` : '';
+  
   return L.divIcon({
     className: 'custom-marker',
     html: `
@@ -17,7 +19,9 @@ const createCustomIcon = (isActive, isSetupMode) => {
         <div class="relative w-8 h-8 rounded-full border-2 ${isSetupMode ? 'border-blue-400' : 'border-white'} shadow-lg flex items-center justify-center transition-all duration-300 transform ${!isSetupMode ? 'group-hover:scale-125' : ''} ${isActive ? 'bg-[#8c3a3a] scale-125' : 'bg-[#5c4d3c]'}">
           <div class="w-2 h-2 bg-white rounded-full"></div>
         </div>
-        ${isSetupMode ? `<div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-[8px] bg-black text-white px-1 rounded whitespace-nowrap z-50">${isActive ? 'EDIT' : ''}</div>` : ''}
+        ${isSetupMode 
+          ? `<div class="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] font-bold bg-blue-600 text-white px-2 py-0.5 rounded shadow-md whitespace-nowrap z-[9999] border border-white/50">${label}</div>` 
+          : ''}
       </div>
     `,
     iconSize: [32, 32],
@@ -55,7 +59,7 @@ const CustomMarker = ({ position, onClick, isActive, data, isSetupMode, onDragEn
       ref={markerRef}
       draggable={isSetupMode}
       position={position} 
-      icon={createCustomIcon(isActive, isSetupMode)}
+      icon={createCustomIcon(isActive, isSetupMode, data)}
       eventHandlers={eventHandlers}
     />
   );

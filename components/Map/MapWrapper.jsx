@@ -4,6 +4,13 @@ import L from 'leaflet';
 import CustomMarker from './CustomMarker.jsx';
 import { AlertTriangle } from 'lucide-react';
 
+// SQUARE FORMAT CONFIGURATION (1:1 Aspect Ratio)
+const imageWidth = 1000; 
+const imageHeight = 1000;
+// Define bounds in Leaflet's simple CRS
+// [0,0] is bottom-left, [height, width] is top-right
+const mapBounds = [[0, 0], [imageHeight, imageWidth]]; 
+
 // Component to handle initial fit and reset interactions
 const MapController = ({ resetTrigger, bounds, minZoom }) => {
   const map = useMap();
@@ -14,8 +21,11 @@ const MapController = ({ resetTrigger, bounds, minZoom }) => {
       map.setMinZoom(minZoom);
       map.setMaxBounds(bounds);
       
-      // Initial fit: center the map
-      map.setView([500, 500], minZoom);
+      // Initial fit: center the map only if we haven't set a view yet or if it's strictly required
+      // We check if the center is default to avoid resetting user's drag
+      if (map.getZoom() === undefined) {
+         map.setView([500, 500], minZoom);
+      }
     }
   }, [map, bounds, minZoom]);
 
@@ -34,12 +44,6 @@ const MapController = ({ resetTrigger, bounds, minZoom }) => {
 };
 
 const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrigger, isSetupMode, onUpdateLocation }) => {
-  // SQUARE FORMAT CONFIGURATION (1:1 Aspect Ratio)
-  const imageWidth = 1000; 
-  const imageHeight = 1000;
-  // Define bounds in Leaflet's simple CRS
-  // [0,0] is bottom-left, [height, width] is top-right
-  const bounds = [[0, 0], [imageHeight, imageWidth]]; 
   
   // OFFLINE MODE PATH
   const mapUrl = 'assets/images/background_map.jpg';
@@ -123,7 +127,7 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
           {!mapError && (
             <ImageOverlay
               url={mapUrl}
-              bounds={bounds}
+              bounds={mapBounds}
               opacity={1}
               zIndex={1}
             />
@@ -143,7 +147,7 @@ const MapWrapper = ({ locations, onLocationSelect, selectedLocationId, resetTrig
             />
           ))}
 
-          <MapController resetTrigger={resetTrigger} bounds={bounds} minZoom={minZoom} />
+          <MapController resetTrigger={resetTrigger} bounds={mapBounds} minZoom={minZoom} />
         </MapContainer>
       )}
       
