@@ -62,7 +62,8 @@ const MapWrapper = ({
     onUpdateGlassPosition 
 }) => {
   // CACHE BUSTING: Přidáme aktuální čas k URL, aby se obrázek vždy načetl znovu
-  const [mapUrl] = useState(`assets/images/background_map.jpg?t=${new Date().getTime()}`);
+  const [mapUrl, setMapUrl] = useState(`assets/images/background_map.jpg?t=${new Date().getTime()}`);
+  const [isFallback, setIsFallback] = useState(false);
   
   const [mapError, setMapError] = useState(false);
   const [attemptedUrl, setAttemptedUrl] = useState('');
@@ -73,10 +74,27 @@ const MapWrapper = ({
   const [foundGems, setFoundGems] = useState([]);
 
   useEffect(() => {
+    if (!mapUrl) return;
+
     const img = new Image();
     img.src = mapUrl;
     setAttemptedUrl(img.src);
-    img.onerror = () => setMapError(true);
+    
+    img.onload = () => {
+        // Image loaded successfully
+        setMapError(false);
+    };
+
+    img.onerror = () => {
+        console.warn("Failed to load map:", img.src);
+        if (!isFallback) {
+            console.log("Switching to fallback map...");
+            setIsFallback(true);
+            setMapUrl(`assets/images/background_map_small.jpeg?t=${new Date().getTime()}`);
+        } else {
+            setMapError(true);
+        }
+    };
 
     const calculateZoom = () => {
        const windowWidth = window.innerWidth;
@@ -90,7 +108,7 @@ const MapWrapper = ({
     calculateZoom();
     window.addEventListener('resize', calculateZoom);
     return () => window.removeEventListener('resize', calculateZoom);
-  }, [mapUrl]);
+  }, [mapUrl, isFallback]);
 
   const handleGemClick = (gem) => {
     if (!foundGems.includes(gem.id)) {
@@ -117,12 +135,14 @@ const MapWrapper = ({
             <p className="mb-2 text-[#c5a065]">Hledám soubor zde:</p>
             <p className="text-white mb-4 bg-black p-2 rounded">{attemptedUrl}</p>
             <p className="text-white">public/assets/images/background_map.jpg</p>
-            <p className="text-xs text-yellow-500 mt-4">Poznámka: Ujistěte se, že jde o soubor 8192x8192px.</p>
+            <p className="text-white mt-2">nebo / or</p>
+            <p className="text-white">public/assets/images/background_map_small.jpeg</p>
+            <p className="text-xs text-yellow-500 mt-4">Poznámka: Ujistěte se, že jde o soubor 8192x8192px (nebo jeho zmenšeninu).</p>
           </div>
         </div>
       )}
 
-      {minZoom !== -1 && (
+      {minZoom !== -1 && !mapError && (
         <MapContainer
           crs={L.CRS.Simple}
           center={[imageHeight/2, imageWidth/2]} 
@@ -139,14 +159,12 @@ const MapWrapper = ({
           className="h-full w-full z-0 bg-[#1a1814] outline-none"
           style={{ background: '#1a1814', height: '100%', width: '100%' }}
         >
-          {!mapError && (
-            <ImageOverlay
-              url={mapUrl}
-              bounds={mapBounds}
-              opacity={1}
-              zIndex={1}
-            />
-          )}
+          <ImageOverlay
+            url={mapUrl}
+            bounds={mapBounds}
+            opacity={1}
+            zIndex={1}
+          />
 
           <TrafficLayer bounds={mapBounds} />
           
@@ -186,7 +204,7 @@ const MapWrapper = ({
         </MapContainer>
       )}
 
-      {mainMapInstance && (
+      {mainMapInstance && !mapError && (
         <MagnifyingGlass 
            mainMap={mainMapInstance}
            mapUrl={mapUrl}
