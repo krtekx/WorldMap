@@ -12,7 +12,11 @@ import pointsData from './data/points.js';
 
 // Internal component to handle logic that requires useSound context
 const AppContent = () => {
-  const [locations, setLocations] = useState(pointsData);
+  // FIX: Access the .locations array specifically
+  const [locations, setLocations] = useState(pointsData.locations || []);
+  // FIX: Access the .glassPosition object specifically
+  const [glassPosition, setGlassPosition] = useState(pointsData.glassPosition || { x: 4096, y: 4096 });
+  
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [isIdle, setIsIdle] = useState(false);
   const [resetMapTrigger, setResetMapTrigger] = useState(0);
@@ -74,8 +78,17 @@ const AppContent = () => {
     ));
   };
 
+  const handleUpdateGlassPosition = (newPos) => {
+    setGlassPosition(newPos);
+  };
+
   const generateJson = () => {
-    return JSON.stringify(locations, null, 2);
+    // Reconstruct the full object structure for export
+    const exportData = {
+        glassPosition: glassPosition,
+        locations: locations
+    };
+    return JSON.stringify(exportData, null, 2);
   };
 
   const copyToClipboard = () => {
@@ -98,7 +111,7 @@ const AppContent = () => {
       {isSetupMode && (
         <div className="absolute top-0 left-0 right-0 z-[8000] bg-blue-900/90 text-white p-4 flex justify-between items-center shadow-xl backdrop-blur">
           <div className="font-mono font-bold animate-pulse">🔧 SETUP MODE (8K)</div>
-          <div className="text-xs opacity-70">Drag points. Coordinates will normalize to 0-100 scale.</div>
+          <div className="text-xs opacity-70">Drag points or Glass. Coordinates auto-save to JSON generator.</div>
           <div className="flex gap-2">
             <button 
               onClick={() => setShowJsonExport(true)}
@@ -148,6 +161,8 @@ const AppContent = () => {
         isSetupMode={isSetupMode}
         onUpdateLocation={handleUpdateLocation}
         onGemFound={handleGemFound}
+        glassPosition={glassPosition}
+        onUpdateGlassPosition={handleUpdateGlassPosition}
       />
 
       <InfoModal 
