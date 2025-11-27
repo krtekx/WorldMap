@@ -11,6 +11,7 @@ import { useSound } from '../../contexts/SoundContext';
 // ULTRA HD SQUARE FORMAT CONFIGURATION (1:1 Aspect Ratio)
 const imageWidth = 8192; 
 const imageHeight = 8192;
+// Bounds defined outside component to remain stable references
 const mapBounds = [[0, 0], [imageHeight, imageWidth]]; 
 
 // HIDDEN GEMS DATA (Easter Eggs)
@@ -22,21 +23,30 @@ const HIDDEN_GEMS = [
 
 const MapController = ({ resetTrigger, bounds, minZoom, setMapInstance }) => {
   const map = useMap();
+  const isInitialized = useRef(false);
   
+  // Expose map instance once
   useEffect(() => {
     setMapInstance(map);
   }, [map, setMapInstance]);
 
+  // Handle initialization and window resize constraints
   useEffect(() => {
     if (bounds && minZoom !== -1) {
       map.setMinZoom(minZoom);
       map.setMaxBounds(bounds);
-      if (map.getZoom() === undefined) {
+      
+      // CRITICAL FIX: Only center the map ONCE on startup.
+      // Checking isInitialized prevents the map from jumping back to center
+      // whenever React re-renders (e.g. when dragging a marker).
+      if (!isInitialized.current) {
          map.setView([imageHeight/2, imageWidth/2], minZoom);
+         isInitialized.current = true;
       }
     }
   }, [map, bounds, minZoom]);
 
+  // Handle Reset / Idle Timer (Screensaver)
   useEffect(() => {
     if (resetTrigger > 0 && minZoom !== -1) {
       map.flyTo([imageHeight/2, imageWidth/2], minZoom, { 
@@ -61,7 +71,7 @@ const MapWrapper = ({
     glassPosition, 
     onUpdateGlassPosition 
 }) => {
-  // CACHE BUSTING: Přidáme aktuální čas k URL, aby se obrázek vždy načetl znovu
+  // CACHE BUSTING: Timestamp to force reload
   const [mapUrl, setMapUrl] = useState(`assets/images/background_map.jpg?t=${new Date().getTime()}`);
   const [isFallback, setIsFallback] = useState(false);
   
@@ -81,7 +91,6 @@ const MapWrapper = ({
     setAttemptedUrl(img.src);
     
     img.onload = () => {
-        // Image loaded successfully
         setMapError(false);
     };
 
@@ -137,7 +146,6 @@ const MapWrapper = ({
             <p className="text-white">public/assets/images/background_map.jpg</p>
             <p className="text-white mt-2">nebo / or</p>
             <p className="text-white">public/assets/images/background_map_small.jpeg</p>
-            <p className="text-xs text-yellow-500 mt-4">Poznámka: Ujistěte se, že jde o soubor 8192x8192px (nebo jeho zmenšeninu).</p>
           </div>
         </div>
       )}
