@@ -1,42 +1,30 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { MapContainer, ImageOverlay, useMap, Marker } from 'react-leaflet';
 import L from 'leaflet';
 import TrafficLayer from './TrafficLayer';
 
-// Interní komponenta pro synchronizaci pohledu v lupě
-const GlassController = ({ glassCenter, mainMap, zoomOffset }) => {
+// Component to sync inner map view
+const GlassController = ({ glassLatLng, mainMap, zoomOffset }) => {
   const map = useMap();
 
   useEffect(() => {
-    if (!mainMap || !glassCenter) return;
+    if (!mainMap || !glassLatLng) return;
 
     const syncView = () => {
-      // 1. Zjistíme LatLng na HLAVNÍ mapě odpovídající středu lupy
-      const point = L.point(glassCenter.x, glassCenter.y);
-      const latLng = mainMap.containerPointToLatLng(point);
-
-      // 2. Zjistíme aktuální zoom hlavní mapy
       const mainZoom = mainMap.getZoom();
-
-      // 3. Nastavíme mapu v lupě na stejné místo, ale s větším zoomem
-      // Zoom offset 3.3 odpovídá zhruba 10násobnému zvětšení
-      map.setView(latLng, mainZoom + zoomOffset, { animate: false });
+      // Sync view to the exact LatLng of the glass center
+      map.setView(glassLatLng, mainZoom + zoomOffset, { animate: false });
     };
 
-    // Synchronizovat ihned
     syncView();
-
-    // Synchronizovat při pohybu hlavní mapy
-    mainMap.on('move', syncView);
-    mainMap.on('zoom', syncView);
+    mainMap.on('zoom', syncView); // Only listen to zoom, move is handled by parent
 
     return () => {
-      mainMap.off('move', syncView);
       mainMap.off('zoom', syncView);
     };
-  }, [glassCenter, mainMap, map, zoomOffset]);
+  }, [glassLatLng, mainMap, map, zoomOffset]);
 
   return null;
 };
@@ -46,49 +34,106 @@ const MagnifyingGlass = ({
   mapUrl, 
   bounds, 
   gems,
-  initialPosition
+  glassPosition, // {x, y} in map coordinates (0-8192)
+  onPositionChange
 }) => {
-  // Pokud není zadána pozice, umístíme ji do pravého dolního rohu (s odstupem)
-  const defaultPos = { 
-    x: window.innerWidth - 300, 
-    y: window.innerHeight - 300 
+  
+  // Convert 0-8192 coords to Leaflet LatLng
+  const getLatLngFromMapPos = (pos) => L.latLng(pos.y, pos.x);
+
+  const [isDragging, setIsDragging] = useState(false);
+  const [screenPos, setScreenPos] = useState({ x: 0, y: 0 });
+  const zoomOffset = 1.6; // ~3x Zoom
+
+  // LOGIC: STICK TO MAP
+  // We calculate where the glass should be on SCREEN based on where it is on the MAP.
+  useEffect(() => {
+    if (!mainMap || isDragging) return;
+
+    const updateScreenPosition = () => {
+      const latLng = getLatLngFromMapPos(glassPosition);
+      // Convert LatLng -> Screen Pixel (x,y)
+      const containerPoint = mainMap.latLngToContainerPoint(latLng);
+      setScreenPos(containerPoint);
+    };
+
+    // Update immediately
+    updateScreenPosition();
+
+    // Update whenever the map moves (pan/zoom)
+    mainMap.on('move zoom', updateScreenPosition);
+    return () => mainMap.off('move zoom', updateScreenPosition);
+  }, [mainMap, glassPosition, isDragging]);
+
+  const handleDragStart = () => setIsDragging(true);
+
+  const handleDrag = (event, info) => {
+    // While dragging, we follow the mouse pointer
+    setScreenPos({ x: info.point.x, y: info.point.y });
   };
 
-  const [glassPos, setGlassPos] = useState(initialPosition || defaultPos);
-  const zoomOffset = 3.3; // ~10x zvětšení
+  const handleDragEnd = (event, info) => {
+    setIsDragging(false);
+    if (!mainMap) return;
+
+    // On drop, convert Screen Pixel -> Map LatLng
+    const dropPoint = L.point(info.point.x, info.point.y);
+    const newLatLng = mainMap.containerPointToLatLng(dropPoint);
+    
+    // Save new position
+    onPositionChange({ 
+      x: Number(newLatLng.lng.toFixed(1)), 
+      y: Number(newLatLng.lat.toFixed(1)) 
+    });
+  };
 
   return (
     <motion.div
       drag
-      dragMomentum={false} // Žádná setrvačnost, chceme přesné ovládání
-      dragElastic={0}      // Žádné "natahování" při tažení mimo
-      onDrag={(event, info) => {
-        // info.point je pozice myši/prstu vůči stránce
-        setGlassPos({ x: info.point.x, y: info.point.y });
-      }}
-      // Počáteční animace příletu
-      initial={{ scale: 0, opacity: 0, x: (initialPosition || defaultPos).x - 128, y: (initialPosition || defaultPos).y - 128 }}
-      animate={{ scale: 1, opacity: 1 }}
-      whileHover={{ scale: 1.05 }}
+      dragMomentum={false}
+      dragElastic={0}
+      onDragStart={handleDragStart}
+      onDrag={handleDrag}
+      onDragEnd={handleDragEnd}
+      // If not dragging, animate to the calculated screen position (stick effect)
+      animate={!isDragging ? { 
+        x: screenPos.x - 128, // Center offset (width/2)
+        y: screenPos.y - 128, // Center offset (height/2)
+        scale: 1, opacity: 1 
+      } : {}}
+      
+      initial={{ scale: 0, opacity: 0 }}
+      whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98, cursor: "grabbing" }}
-      // Stylování samotné čočky
+      
       className="absolute z-[6000] w-64 h-64 rounded-full cursor-grab"
       style={{
-        // Stín a okraj pro efekt "položeného předmětu"
-        boxShadow: '0 20px 50px rgba(0,0,0,0.8), inset 0 0 0 2px rgba(255,255,255,0.1)',
+        top: 0,
         left: 0,
-        top: 0
+        // Realistic shadow for the object lying on the table
+        filter: 'drop-shadow(0px 20px 30px rgba(0,0,0,0.6))'
       }}
     >
-      {/* Kovový rám čočky (mosaz) */}
-      <div className="absolute inset-0 rounded-full border-[12px] border-[#c5a065] z-20 pointer-events-none shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]" 
-           style={{ background: 'transparent' }} />
+      {/* 1. GOLD FRAME (Conic Gradient for Metallic effect) */}
+      <div 
+        className="absolute inset-0 rounded-full z-20 pointer-events-none" 
+        style={{
+          background: 'conic-gradient(from 45deg, #8c7b5d, #c5a065, #f5e6c8, #c5a065, #8c7b5d, #5c4d3c, #8c7b5d)',
+          boxShadow: 'inset 0 2px 5px rgba(255,255,255,0.4), inset 0 -2px 5px rgba(0,0,0,0.4)',
+          // Cut out the middle to make it a frame
+          mask: 'radial-gradient(transparent 64%, black 65%)',
+          WebkitMask: 'radial-gradient(transparent 64%, black 65%)'
+        }} 
+      />
+      
+      {/* 2. INNER RIM (Darker depth) */}
+      <div className="absolute inset-[12px] rounded-full border-4 border-[#3e3020] z-20 pointer-events-none opacity-60" />
 
-      {/* Obsah lupy (maskovaná mapa) */}
-      <div className="w-full h-full rounded-full overflow-hidden relative bg-[#1a1814]">
+      {/* 3. LENS CONTENT */}
+      <div className="absolute inset-[14px] rounded-full overflow-hidden bg-[#1a1814]">
         <MapContainer
           crs={L.CRS.Simple}
-          center={[4096, 4096]} 
+          center={[0, 0]} 
           zoom={1}
           zoomControl={false}
           attributionControl={false}
@@ -102,7 +147,6 @@ const MagnifyingGlass = ({
           <ImageOverlay url={mapUrl} bounds={bounds} />
           <TrafficLayer bounds={bounds} />
           
-          {/* Vykreslení drahokamů i v lupě - Použití <Marker> místo <L.Marker> */}
           {gems && gems.map(gem => (
              <Marker
                 key={`glass-gem-${gem.id}`}
@@ -117,15 +161,25 @@ const MagnifyingGlass = ({
           ))}
           
           <GlassController 
-            glassCenter={glassPos} 
+            glassLatLng={getLatLngFromMapPos(glassPosition)} 
             mainMap={mainMap} 
             zoomOffset={zoomOffset} 
           />
         </MapContainer>
         
-        {/* Odlesky skla (vrchní vrstvy) */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 via-transparent to-black/20 pointer-events-none z-[9999]" />
-        <div className="absolute top-4 left-8 w-16 h-8 bg-white/10 blur-xl rounded-full transform -rotate-45 pointer-events-none z-[9999]" />
+        {/* 4. GLASS EFFECTS (Overlays) */}
+        
+        {/* Inner Shadow for curvature */}
+        <div className="absolute inset-0 rounded-full shadow-[inset_0_0_50px_rgba(0,0,0,0.6)] pointer-events-none z-[9999]" />
+        
+        {/* Specular Highlight (Reflection) */}
+        <div 
+            className="absolute top-4 left-6 w-24 h-12 bg-gradient-to-b from-white to-transparent rounded-[50%] opacity-20 pointer-events-none z-[9999] transform -rotate-12" 
+            style={{ filter: 'blur(2px)' }}
+        />
+        
+        {/* Bottom Highlight (Caustics) */}
+        <div className="absolute bottom-4 right-10 w-32 h-16 bg-gradient-to-t from-[#c5a065] to-transparent rounded-[50%] opacity-10 pointer-events-none z-[9999] mix-blend-overlay" />
       </div>
     </motion.div>
   );

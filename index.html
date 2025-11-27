@@ -38,20 +38,26 @@
         /* Leaflet override */
         .leaflet-container {
             background: #1a1814 !important;
+            /* Force hardware acceleration to fix choppy zoom */
+            will-change: transform;
+        }
+        /* Optimize images for performance */
+        .leaflet-image-layer {
+            image-rendering: high-quality;
         }
     </style>
   <script type="importmap">
 {
   "imports": {
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
-    "vite": "https://aistudiocdn.com/vite@^7.2.4",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
-    "framer-motion": "https://aistudiocdn.com/framer-motion@^12.23.24",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "framer-motion": "https://aistudiocdn.com/framer-motion@^12.23.24",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
     "react-leaflet": "https://aistudiocdn.com/react-leaflet@^5.0.0",
-    "leaflet": "https://aistudiocdn.com/leaflet@^1.9.4"
+    "leaflet": "https://aistudiocdn.com/leaflet@^1.9.4",
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
   }
 }
 </script>

@@ -1,6 +1,9 @@
 
+// Map Dimensions: Width 8192, Height 8192
+// Coordinate System: [Y (0-8192), X (0-8192)] relative scale 0-100 used in data
+
 export default {
-  glassPosition: { x: 4096, y: 4096 }, // Výchozí pozice lupy (střed mapy)
+  glassPosition: { x: 4096, y: 4096 }, // Default center position for the glass
   locations: [
   {
     "id": 1,
