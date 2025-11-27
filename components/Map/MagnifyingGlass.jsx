@@ -39,7 +39,12 @@ const MagnifyingGlass = ({
 }) => {
   
   // Convert 0-8192 coords to Leaflet LatLng
-  const getLatLngFromMapPos = (pos) => L.latLng(pos.y, pos.x);
+  const getLatLngFromMapPos = (pos) => {
+    if (!pos || typeof pos.x !== 'number' || typeof pos.y !== 'number') {
+      return L.latLng(0, 0); // Safe fallback
+    }
+    return L.latLng(pos.y, pos.x);
+  };
 
   const [isDragging, setIsDragging] = useState(false);
   const [screenPos, setScreenPos] = useState({ x: 0, y: 0 });
@@ -48,7 +53,7 @@ const MagnifyingGlass = ({
   // LOGIC: STICK TO MAP
   // We calculate where the glass should be on SCREEN based on where it is on the MAP.
   useEffect(() => {
-    if (!mainMap || isDragging) return;
+    if (!mainMap || isDragging || !glassPosition) return;
 
     const updateScreenPosition = () => {
       const latLng = getLatLngFromMapPos(glassPosition);
@@ -86,6 +91,8 @@ const MagnifyingGlass = ({
       y: Number(newLatLng.lat.toFixed(1)) 
     });
   };
+
+  if (!glassPosition) return null;
 
   return (
     <motion.div
