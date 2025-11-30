@@ -1,0 +1,1401 @@
+:root {
+    --color-gold: #D4AF37;
+    --color-gold-dim: #AA8C2C;
+    --color-dark: #121212;
+    --color-dark-overlay: rgba(10, 10, 10, 0.9);
+    --color-cream: #E8E4D9;
+    /* Beige/Cream from reference */
+    --color-white: #FFFFFF;
+    --color-text-dark: #2C2C2C;
+    --font-heading: 'Playfair Display', serif;
+    --font-body: 'Lato', sans-serif;
+    --transition-speed: 0.4s;
+}
+
+* {
+    box-sizing: border-box;
+    user-select: none;
+    /* Prevent text selection in kiosk mode */
+    -webkit-user-select: none;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-dark);
+    color: var(--color-cream);
+    font-family: var(--font-body);
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+}
+
+#app {
+    width: 100%;
+    height: 100%;
+}
+
+.kiosk-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, #2a2a2a 0%, #000000 100%);
+}
+
+#map-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    touch-action: none;
+}
+
+.map-content-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    transform-origin: 0 0;
+    /* Important for zoom calculation */
+}
+
+.map-background-container {
+    position: relative;
+    width: 100%;
+    height: auto;
+    pointer-events: none;
+}
+
+.map-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    display: block;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    z-index: 1;
+}
+
+.map-layer.base-layer {
+    position: relative;
+    /* Defines container height */
+    opacity: 1;
+    /* Always visible */
+    z-index: 0;
+}
+
+.map-layer.active {
+    opacity: 1;
+}
+
+/* Map Points */
+.map-point {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background-color: transparent;
+    border: 3px solid white;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.map-point::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    background-color: white;
+    border-radius: 50%;
+}
+
+.map-point:hover {
+    transform: translate(-50%, -50%) scale(1.2);
+    border-color: var(--color-gold);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+}
+
+.map-point:hover::after {
+    background-color: var(--color-gold);
+}
+
+/* Active/clicked state - brighter gold, larger glow */
+.map-point.active {
+    border-color: #FFD700;
+    /* Brighter gold */
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+    transform: translate(-50%, -50%) scale(1.3);
+}
+
+.map-point.active::after {
+    background-color: #FFD700;
+    /* Brighter gold */
+}
+
+.map-point:active {
+    transform: translate(-50%, -50%) scale(0.95);
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 3s ease;
+    /* 3 second fade */
+    backdrop-filter: blur(5px);
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    display: flex;
+    width: 90%;
+    max-width: 1100px;
+    height: 600px;
+    background-color: var(--color-cream);
+    border: 3px solid var(--color-gold);
+    /* Gold border */
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    transform: translateY(20px);
+    transition: transform 3s ease;
+    /* Match opacity transition */
+    position: relative;
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0);
+}
+
+/* Left side - Image */
+.modal-image-container {
+    flex: 1;
+    background-color: #121212;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    /* Ensure relative positioning for absolute children */
+    overflow: hidden;
+    border-right: 1px solid #333;
+}
+
+.modal-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.5s ease 0.2s;
+}
+
+.modal-overlay.active .modal-image {
+    opacity: 1;
+}
+
+.modal-image-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #444;
+    gap: 10px;
+}
+
+.modal-image-placeholder span {
+    font-family: var(--font-heading);
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.modal-region-tag {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    background-color: #8B3A3A;
+    color: white;
+    padding: 8px 16px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    border-radius: 4px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Right side - Info */
+.modal-info {
+    flex: 1;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: var(--color-cream);
+    /* Add subtle texture if possible, or just color */
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23d4af37' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+    color: var(--color-text-dark);
+    position: relative;
+}
+
+.modal-location-label {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+}
+
+.modal-title {
+    font-family: var(--font-heading);
+    font-size: 3rem;
+    font-weight: 700;
+    color: #222;
+    margin: 0 0 15px 0;
+    line-height: 1.1;
+}
+
+.modal-visit-date {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--color-gold-dim);
+    font-weight: 600;
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+.modal-divider {
+    width: 100%;
+    height: 2px;
+    background-color: #D4AF37;
+    margin-bottom: 30px;
+}
+
+.modal-description {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #444;
+    margin-bottom: auto;
+}
+
+.modal-footer {
+    margin-top: 40px;
+    font-family: var(--font-heading);
+    font-style: italic;
+    font-size: 0.9rem;
+    color: #888;
+}
+
+/* Close Button */
+.close-button {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, background-color 0.2s;
+    z-index: 10;
+    color: #333;
+}
+
+.close-button:hover {
+    transform: scale(1.1);
+    background-color: #f0f0f0;
+}
+
+/* Navigation Buttons */
+.modal-nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding-top: 20px;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-heading);
+    font-weight: bold;
+    font-size: 1rem;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s;
+}
+
+.nav-btn:hover {
+    color: var(--color-gold-dim);
+}
+
+/* --- New Features: Edit Mode & Zoom/Pan --- */
+
+/* Hidden Admin Trigger (Top-Left) */
+.admin-trigger {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    width: 40px;
+    height: 40px;
+    z-index: 99999;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+}
+
+.admin-trigger:hover {
+    background: rgba(212, 175, 55, 0.8);
+    transform: scale(1.1);
+}
+
+.admin-trigger svg {
+    width: 24px;
+    height: 24px;
+    fill: white;
+}
+
+/* Edit Mode UI */
+.edit-mode-ui {
+    position: fixed;
+    top: 20px;
+    left: 60px;
+    /* Next to trigger */
+    z-index: 1000;
+    display: none;
+    /* Hidden by default */
+    flex-direction: column;
+    gap: 10px;
+}
+
+.edit-mode-ui.active {
+    display: flex;
+}
+
+.edit-mode-btn {
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border: 1px solid #666;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: sans-serif;
+    font-size: 12px;
+}
+
+.edit-mode-btn:hover {
+    background: rgba(50, 50, 50, 0.9);
+}
+
+.edit-mode-btn.active {
+    background: var(--color-gold);
+    color: black;
+    border-color: var(--color-gold);
+}
+
+.btn-submit {
+    background-color: var(--color-gold);
+    color: var(--color-dark);
+    border: none;
+    padding: 10px 20px;
+    font-family: var(--font-heading);
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    background-color: #FFD700;
+}
+
+.edit-mode-indicator {
+    background-color: rgba(255, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    pointer-events: none;
+}
+
+/* Map Container Transformations */
+#map-container {
+    /* Ensure transformations happen smoothly */
+    transform-origin: center center;
+    will-change: transform;
+    /* Cursor changes based on state handled in JS */
+}
+
+
+/* When in Edit Mode, points should look draggable but smaller */
+.map-point.draggable {
+    cursor: grab;
+}
+
+.map-point.draggable:active {
+    cursor: grabbing;
+}
+
+/* Gem Modal */
+.gem-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+.gem-modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.gem-modal-content {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 3px solid var(--color-gold);
+    border-radius: 12px;
+    padding: 40px;
+    max-width: 500px;
+    text-align: center;
+    transform: scale(0.8);
+    transition: transform 0.5s ease;
+}
+
+.gem-modal-overlay.active .gem-modal-content {
+    transform: scale(1);
+}
+
+.gem-modal-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    animation: gemPulse 2s ease-in-out infinite;
+}
+
+@keyframes gemPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.gem-modal-title {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    color: var(--color-gold);
+    margin: 0 0 15px 0;
+}
+
+.gem-modal-subtitle {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: var(--color-cream);
+    margin-bottom: 30px;
+}
+
+.gem-modal-code-label {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.gem-modal-code {
+    font-family: 'Courier New', monospace;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: white;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 15px 30px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    letter-spacing: 4px;
+}
+
+.gem-modal-close {
+    background-color: var(--color-gold);
+    color: var(--color-dark);
+    border: none;
+    padding: 12px 40px;
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.gem-modal-close:hover {
+    background-color: #FFD700;
+    transform: translateY(-2px);
+}
+
+/* Gem Hint Bar */
+.gem-hint-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    border-bottom: 1px solid var(--color-gold);
+    padding: 15px 20px;
+    box-sizing: border-box;
+    z-index: 20;
+    transform: translateY(0);
+    transition: transform 0.3s ease;
+}
+
+.gem-hint-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    max-width: 100%;
+}
+
+.gem-hint-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+    animation: pulse 2s infinite;
+}
+
+.gem-hint-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.gem-hint-text strong {
+    color: var(--color-gold);
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.gem-hint-text span {
+    color: #ccc;
+    font-size: 0.8rem;
+    font-family: var(--font-body);
+}
+
+.gem-reveal-btn {
+    background: linear-gradient(135deg, var(--color-gold) 0%, #b8860b 100%);
+    border: none;
+    padding: 8px 16px;
+    color: #000;
+    font-family: var(--font-heading);
+    font-weight: bold;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.gem-reveal-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(218, 165, 32, 0.4);
+}
+
+.gem-reveal-btn.disabled {
+    background: #444;
+    color: #888;
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Revealed Gem Low Zoom Style */
+.gem-point.revealed-low-zoom {
+    opacity: 0.6;
+    filter: grayscale(0.5);
+    transform: translate(-50%, -50%) scale(0.8);
+}
+
+.gem-point.revealed-low-zoom:hover {
+    opacity: 1;
+    filter: none;
+    transform: translate(-50%, -50%) scale(1.5);
+}
+
+.map-point.draggable {
+    border-color: #FF4444;
+    width: 12px;
+    height: 12px;
+    border-width: 2px;
+}
+
+.map-point.draggable::after {
+    width: 4px;
+    height: 4px;
+}
+
+.btn-close-edit {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    width: 30px;
+    height: 30px;
+    background-color: #FF4444;
+    color: white;
+    border: 2px solid white;
+    border-radius: 50%;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+}
+
+.btn-close-edit:hover {
+    background-color: #CC0000;
+    transform: scale(1.1);
+}
+
+/* Label above points in Edit Mode */
+.map-point-label {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 20;
+    display: none;
+    /* Hidden by default */
+}
+
+.map-point.draggable:hover .map-point-label {
+    display: block;
+    /* Show only on hover in Edit Mode */
+}
+
+/* Reference Overlay */
+.reference-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Mercator-projection.jpg/1280px-Mercator-projection.jpg');
+    background-size: 100% 100%;
+    opacity: 0.5;
+    pointer-events: none;
+    /* Let clicks pass through to points */
+    z-index: 1;
+    /* Below points (z-index 10) but above background */
+    display: none;
+    transform-origin: top left;
+    transition: transform 0.1s ease, opacity 0.2s ease;
+}
+
+.reference-overlay.active {
+    display: block;
+    pointer-events: auto;
+    /* Enable interaction when active */
+    cursor: grab;
+}
+
+/* Transform Handles */
+.ref-handle {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: ns-resize;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.reference-overlay.active .ref-handle {
+    opacity: 1;
+}
+
+.ref-handle-top {
+    top: 0;
+}
+
+.ref-handle-bottom {
+    bottom: 0;
+}
+
+.handle-line {
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(33, 150, 243, 0.8) 20%,
+            rgba(33, 150, 243, 0.8) 80%,
+            transparent 100%);
+    box-shadow: 0 0 10px rgba(33, 150, 243, 0.6);
+    position: relative;
+}
+
+.handle-line::before,
+.handle-line::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    background: rgba(33, 150, 243, 0.9);
+    border: 2px solid white;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.handle-line::before {
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.ref-handle:hover .handle-line {
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(33, 150, 243, 1) 20%,
+            rgba(33, 150, 243, 1) 80%,
+            transparent 100%);
+    height: 4px;
+}
+
+.btn-toggle-ref {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-toggle-ref:hover {
+    background: #1976D2;
+}
+
+/* Reference Map Controls Panel */
+.ref-controls-panel {
+    background: rgba(0, 0, 0, 0.85);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+    border: 2px solid var(--color-gold);
+    min-width: 300px;
+}
+
+.ref-controls-title {
+    color: var(--color-gold);
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    margin-bottom: 12px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.control-group label {
+    color: white;
+    font-size: 0.85rem;
+    min-width: 80px;
+    font-weight: 600;
+}
+
+.control-group input[type="number"] {
+    flex: 1;
+    padding: 5px 8px;
+    border: 1px solid #555;
+    background: #222;
+    color: white;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    width: 80px;
+}
+
+.control-group input[type="range"] {
+    flex: 1;
+}
+
+.btn-adjust {
+    width: 30px;
+    height: 30px;
+    background: #444;
+    color: white;
+    border: 1px solid #666;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.btn-adjust:hover {
+    background: #555;
+}
+
+.btn-adjust:active {
+    background: #333;
+}
+
+.opacity-value {
+    color: var(--color-gold);
+    font-weight: bold;
+    min-width: 40px;
+    text-align: center;
+}
+
+.btn-reset-ref {
+    width: 100%;
+    padding: 8px;
+    background: #FF6B6B;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.btn-reset-ref:hover {
+    background: #FF5252;
+}
+
+.btn-auto-position {
+    width: 100%;
+    padding: 8px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.btn-auto-position:hover {
+    background: #45A049;
+}
+
+.coordinate-display {
+    margin-top: 12px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    text-align: center;
+    color: var(--color-gold);
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+/* Idle Screen Overlay */
+.idle-screen-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.8) 100%);
+    backdrop-filter: blur(15px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99998;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+}
+
+.idle-screen-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Start Game Page */
+/* Start Game Page */
+.start-game-container {
+    position: relative;
+    width: auto;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.start-game-bg {
+    width: auto;
+    height: auto;
+    max-width: 600px;
+    max-height: 60vh;
+    object-fit: contain;
+    /* Removed border-radius and box-shadow for cleaner look */
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+    /* Use drop-shadow for transparency support */
+}
+
+.start-game-btn {
+    position: absolute;
+    /* Changed back to absolute for precise positioning over image */
+    bottom: calc(10% - 15px);
+    /* Fine-tuned 15px lower */
+    left: 50%;
+    transform: translateX(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    z-index: 10;
+}
+
+.start-game-btn img {
+    display: block;
+    width: 160px;
+    /* Made smaller */
+    height: auto;
+    filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.5));
+}
+
+.start-game-btn:hover {
+    transform: translateX(-50%) scale(1.05);
+    /* Keep centered while scaling */
+    filter: brightness(1.1);
+}
+
+.start-game-btn:active {
+    transform: translate(-50%, -50%) scale(0.95);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.idle-icon {
+    color: var(--color-gold);
+    margin-bottom: 40px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: scale(1.05);
+    }
+}
+
+.idle-title {
+    font-family: var(--font-heading);
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--color-gold);
+    margin: 0 0 20px 0;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.idle-subtitle {
+    font-family: var(--font-body);
+    font-size: 1.3rem;
+    color: var(--color-cream);
+    margin: 0;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+}
+
+/* Zoom Controls */
+.map-zoom-controls {
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 100;
+}
+
+.zoom-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: rgba(18, 18, 18, 0.9);
+    border: 2px solid var(--color-gold);
+    color: var(--color-gold);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    padding: 0;
+}
+
+.zoom-btn:hover {
+    background-color: var(--color-gold);
+    color: var(--color-dark);
+    transform: scale(1.1);
+}
+
+.zoom-btn:active {
+    transform: scale(0.95);
+}
+
+.zoom-btn svg {
+    display: block;
+}
+
+/* Debug Panel */
+.debug-panel {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 6px 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    color: white;
+    z-index: 10000;
+    line-height: 1.3;
+}
+
+.debug-version {
+    font-weight: bold;
+    font-size: 0.75rem;
+}
+
+.debug-date,
+.debug-bg,
+.debug-zoom,
+.debug-coords {
+    font-size: 0.65rem;
+    opacity: 0.9;
+}
+
+.debug-bg-name,
+.debug-zoom-value {
+    font-weight: normal;
+}
+
+/* Gem Points (Easter Eggs) */
+.gem-point {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    z-index: 15;
+    transition: all 0.3s ease;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Show gems only at 8x zoom and above */
+.gem-point.visible {
+    opacity: 0.8;
+    pointer-events: auto;
+}
+
+.gem-point:hover {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+}
+
+/* Gem Modal */
+.gem-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+.gem-modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.gem-modal-content {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 3px solid var(--color-gold);
+    border-radius: 12px;
+    padding: 40px;
+    max-width: 500px;
+    text-align: center;
+    transform: scale(0.8);
+    transition: transform 0.5s ease;
+}
+
+.gem-modal-overlay.active .gem-modal-content {
+    transform: scale(1);
+}
+
+.gem-modal-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    animation: gemPulse 2s ease-in-out infinite;
+}
+
+@keyframes gemPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.gem-modal-title {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    color: var(--color-gold);
+    margin: 0 0 15px 0;
+}
+
+.gem-modal-subtitle {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: var(--color-cream);
+    margin-bottom: 30px;
+}
+
+.gem-modal-code-label {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.gem-modal-code {
+    font-family: 'Courier New', monospace;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: white;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 15px 30px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    letter-spacing: 4px;
+}
+
+.gem-modal-close {
+    background-color: var(--color-gold);
+    color: var(--color-dark);
+    border: none;
+    padding: 12px 40px;
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.gem-modal-close:hover {
+    background-color: #FFD700;
+    transform: translateY(-2px);
+    max-width: 100%;
+}
+
+.gem-hint-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+    animation: pulse 2s infinite;
+}
+
+.gem-hint-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.gem-hint-text strong {
+    color: var(--color-gold);
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.gem-hint-text span {
+    color: #ccc;
+    font-size: 0.8rem;
+    font-family: var(--font-body);
+}
+
+.gem-reveal-btn {
+    background: linear-gradient(135deg, var(--color-gold) 0%, #b8860b 100%);
+    border: none;
+    padding: 8px 16px;
+    color: #000;
+    font-family: var(--font-heading);
+    font-weight: bold;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.gem-reveal-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(218, 165, 32, 0.4);
+}
+
+.gem-reveal-btn.disabled {
+    background: #444;
+    color: #888;
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Revealed Gem Low Zoom Style */
+.gem-point.revealed-low-zoom {
+    width: 50px;
+    height: 50px;
+    opacity: 1;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    animation: revealedPulse 2s infinite;
+}
+
+.gem-point.revealed-low-zoom:hover {
+    transform: translate(-50%, -50%) scale(1.2);
+}
+
+@keyframes revealedPulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+}

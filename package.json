@@ -1,0 +1,20 @@
+{
+  "name": "interactive-world-map",
+  "private": true,
+  "version": "3.2.9",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
+    "track": "node antigravity-tracker/tracker.cjs",
+    "track:stop": "taskkill /F /IM node.exe /FI \"WINDOWTITLE eq tracker.cjs\" || echo No tracking process found"
+  },
+  "devDependencies": {
+    "chokidar": "^4.0.3",
+    "gh-pages": "^6.3.0",
+    "vite": "^5.0.0"
+  }
+}

@@ -1,0 +1,42 @@
+/* Debug Panel */
+.debug-panel {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 1px solid var(--color-gold);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: var(--color-gold);
+    z-index: 10000;
+    line-height: 1.6;
+    min-width: 200px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.debug-version {
+    font-weight: bold;
+    font-size: 1rem;
+    margin-bottom: 4px;
+    color: #FFD700;
+}
+
+.debug-date {
+    color: #AAA;
+    font-size: 0.75rem;
+    margin-bottom: 8px;
+}
+
+.debug-bg,
+.debug-zoom {
+    color: #CCC;
+    margin-top: 4px;
+}
+
+.debug-bg-name,
+.debug-zoom-value {
+    color: var(--color-gold);
+    font-weight: bold;
+}

@@ -1,0 +1,6 @@
+You must update the version number in `package.json` and `public/production.json` after every single prompt where you make code changes.
+Increment the patch version (e.g., 3.0.7 -> 3.0.8).
+Track our production time. Use our track-time.js script to do this.
+start the script always when antigravity start working on this project.
+stop the script always when antigravity stop working on this project.
+always reload the page when you make changes to the code.
