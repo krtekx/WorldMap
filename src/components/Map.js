@@ -53,20 +53,20 @@ export function initMap(mapContainer, modalContainer) {
     bgContainer.classList.add('map-background-container');
 
     // Dynamic Map Resolution - Layered Approach
-    // Using relative paths from public folder (CSP-safe)
+    // Using absolute paths from root (Vite copies public to dist root)
     const layers = [
-        { src: './assets/WorldMap_bg_1k.jpg', res: '1k', element: null },
-        { src: './assets/WorldMap_bg_2k.jpg', res: '2k', element: null },
-        { src: './assets/WorldMap_bg_4k.jpg', res: '4k', element: null },
-        { src: './assets/WorldMap_bg_8k.jpg', res: '8k', element: null }
+        { src: '/assets/WorldMap_bg_1k.jpg', res: '1k', element: null },
+        { src: '/assets/WorldMap_bg_2k.jpg', res: '2k', element: null },
+        { src: '/assets/WorldMap_bg_4k.jpg', res: '4k', element: null },
+        { src: '/assets/WorldMap_bg_8k.jpg', res: '8k', element: null }
     ];
 
     // 16K tiles (4 quadrants)
     const tiles16k = [
-        { src: './assets/16k_aa.jpg', position: 'top-left', element: null },
-        { src: './assets/16k_ab.jpg', position: 'top-right', element: null },
-        { src: './assets/16k_ba.jpg', position: 'bottom-left', element: null },
-        { src: './assets/16k_bb.jpg', position: 'bottom-right', element: null }
+        { src: '/assets/16k_aa.jpg', position: 'top-left', element: null },
+        { src: '/assets/16k_ab.jpg', position: 'top-right', element: null },
+        { src: '/assets/16k_ba.jpg', position: 'bottom-left', element: null },
+        { src: '/assets/16k_bb.jpg', position: 'bottom-right', element: null }
     ];
 
     // Create layers
