@@ -3,6 +3,8 @@ import { defineConfig } from 'vite'
 export default defineConfig({
     base: '/',
     build: {
+        // Temporary: Don't empty dist to avoid Dropbox locking
+        emptyOutDir: false,
         // Disable minification features that use eval()
         minify: 'terser',
         terserOptions: {
