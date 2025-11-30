@@ -5,6 +5,16 @@ import { gems as initialGems } from '../gems.js'
 import { openGemModal } from './GemModal.js'
 import { initGemHints, isGemRevealed, resetGemSystem } from '../gemHints.js';
 
+// Import map assets for proper Vite bundling
+import map1k from '/assets/WorldMap_bg_1k.jpg'
+import map2k from '/assets/WorldMap_bg_2k.jpg'
+import map4k from '/assets/WorldMap_bg_4k.jpg'
+import map8k from '/assets/WorldMap_bg_8k.jpg'
+import tile16kAA from '/assets/16k_aa.jpg'
+import tile16kAB from '/assets/16k_ab.jpg'
+import tile16kBA from '/assets/16k_ba.jpg'
+import tile16kBB from '/assets/16k_bb.jpg'
+
 export function initMap(mapContainer, modalContainer) {
     // --- State ---
     let scale = 1;
@@ -54,18 +64,18 @@ export function initMap(mapContainer, modalContainer) {
 
     // Dynamic Map Resolution - Layered Approach
     const layers = [
-        { src: '/assets/WorldMap_bg_1k.jpg', res: '1k', element: null },
-        { src: '/assets/WorldMap_bg_2k.jpg', res: '2k', element: null },
-        { src: '/assets/WorldMap_bg_4k.jpg', res: '4k', element: null },
-        { src: '/assets/WorldMap_bg_8k.jpg', res: '8k', element: null }
+        { src: map1k, res: '1k', element: null },
+        { src: map2k, res: '2k', element: null },
+        { src: map4k, res: '4k', element: null },
+        { src: map8k, res: '8k', element: null }
     ];
 
     // 16K tiles (4 quadrants)
     const tiles16k = [
-        { src: '/assets/16k_aa.jpg', position: 'top-left', element: null },
-        { src: '/assets/16k_ab.jpg', position: 'top-right', element: null },
-        { src: '/assets/16k_ba.jpg', position: 'bottom-left', element: null },
-        { src: '/assets/16k_bb.jpg', position: 'bottom-right', element: null }
+        { src: tile16kAA, position: 'top-left', element: null },
+        { src: tile16kAB, position: 'top-right', element: null },
+        { src: tile16kBA, position: 'bottom-left', element: null },
+        { src: tile16kBB, position: 'bottom-right', element: null }
     ];
 
     // Create layers
