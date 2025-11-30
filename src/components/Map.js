@@ -48,45 +48,55 @@ export function initMap(mapContainer, modalContainer) {
     contentWrapper.classList.add('map-content-wrapper');
     mapContainer.appendChild(contentWrapper);
 
+
     // Setup background images (moved into wrapper)
     const bgContainer = document.createElement('div');
     bgContainer.classList.add('map-background-container');
 
-    // Dynamic Map Resolution - Layered Approach
-    // Using absolute paths from root (Vite copies public to dist root)
-    const layers = [
-        { src: '/assets/WorldMap_bg_1k.jpg', res: '1k', element: null },
-        { src: '/assets/WorldMap_bg_2k.jpg', res: '2k', element: null },
-        { src: '/assets/WorldMap_bg_4k.jpg', res: '4k', element: null },
-        { src: '/assets/WorldMap_bg_8k.jpg', res: '8k', element: null }
-    ];
-
-    // 16K tiles (4 quadrants)
+    // Simplified: Use only 16K tiles (4 quadrants) - highest quality
     const tiles16k = [
-        { src: '/assets/16k_aa.jpg', position: 'top-left', element: null },
-        { src: '/assets/16k_ab.jpg', position: 'top-right', element: null },
-        { src: '/assets/16k_ba.jpg', position: 'bottom-left', element: null },
-        { src: '/assets/16k_bb.jpg', position: 'bottom-right', element: null }
+        { src: '/assets/16k_aa.jpg', position: 'top-left', element: null, loaded: false },
+        { src: '/assets/16k_ab.jpg', position: 'top-right', element: null, loaded: false },
+        { src: '/assets/16k_ba.jpg', position: 'bottom-left', element: null, loaded: false },
+        { src: '/assets/16k_bb.jpg', position: 'bottom-right', element: null, loaded: false }
     ];
 
-    // Create layers
-    layers.forEach((layer, index) => {
-        const img = document.createElement('img');
-        img.src = layer.src;
-        img.classList.add('map-layer');
-        img.dataset.res = layer.res;
+    // Create loading overlay
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(20, 15, 10, 0.95);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        font-family: 'Cinzel', serif;
+        color: #d4af37;
+    `;
 
-        // First layer is base
-        if (index === 0) {
-            img.classList.add('base-layer');
-        } else {
-            img.classList.add('overlay-layer');
-        }
+    const loadingText = document.createElement('div');
+    loadingText.style.cssText = `
+        font-size: 2rem;
+        margin-bottom: 2rem;
+        text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+    `;
+    loadingText.textContent = 'Loading World Map...';
 
-        img.ondragstart = (e) => e.preventDefault();
-        bgContainer.appendChild(img);
-        layer.element = img;
-    });
+    const loadingProgress = document.createElement('div');
+    loadingProgress.style.cssText = `
+        font-size: 1.2rem;
+        opacity: 0.8;
+    `;
+    loadingProgress.textContent = '0 / 4 tiles loaded';
+
+    loadingOverlay.appendChild(loadingText);
+    loadingOverlay.appendChild(loadingProgress);
+    document.body.appendChild(loadingOverlay);
 
     // Create 16K tile container
     const tiles16kContainer = document.createElement('div');
@@ -102,127 +112,49 @@ export function initMap(mapContainer, modalContainer) {
         grid-template-rows: 1fr 1fr;
         opacity: 0;
         transition: opacity 0.5s ease-in-out;
-        z-index: 2;
     `;
 
+    let loadedCount = 0;
+
+    // Load all 16K tiles
     tiles16k.forEach(tile => {
         const img = document.createElement('img');
         img.src = tile.src;
         img.style.cssText = 'width: 100%; height: 100%; display: block; object-fit: cover;';
         img.ondragstart = (e) => e.preventDefault();
+
+        // Track loading
+        img.onload = () => {
+            tile.loaded = true;
+            loadedCount++;
+            loadingProgress.textContent = `${loadedCount} / 4 tiles loaded`;
+
+            // When all tiles are loaded, show the map
+            if (loadedCount === 4) {
+                setTimeout(() => {
+                    tiles16kContainer.style.opacity = '1';
+                    setTimeout(() => {
+                        loadingOverlay.style.opacity = '0';
+                        setTimeout(() => {
+                            loadingOverlay.remove();
+                        }, 500);
+                    }, 500);
+                }, 300);
+            }
+        };
+
+        img.onerror = () => {
+            console.error(`Failed to load tile: ${tile.src}`);
+            loadingText.textContent = 'Error loading map tiles';
+            loadingText.style.color = '#ff4444';
+        };
+
         tiles16kContainer.appendChild(img);
         tile.element = img;
     });
 
     bgContainer.appendChild(tiles16kContainer);
-
     contentWrapper.appendChild(bgContainer);
-
-    // Resolution Switching Logic
-    let currentResIndex = 0;
-    let pendingResIndex = 0;
-    let current16kState = false;
-    let pending16kState = false;
-    let resolutionDebounceTimer = null;
-    const RESOLUTION_DEBOUNCE_DELAY = 300; // ms
-
-    function updateMapResolution() {
-        let targetIndex = 0;
-        let use16k = false;
-
-        if (scale <= 1) {
-            targetIndex = 0; // 1k
-        } else if (scale <= 2) {
-            targetIndex = 1; // 2k
-        } else if (scale <= 4) {
-            targetIndex = 2; // 4k
-        } else if (scale <= 8) {
-            targetIndex = 3; // 8k
-        } else {
-            targetIndex = 3; // Keep 8k as base
-            use16k = true; // Add 16k tiles on top
-        }
-
-        // Debounce the switch - check both index AND 16k state
-        if (targetIndex !== pendingResIndex || use16k !== pending16kState) {
-            pendingResIndex = targetIndex;
-            pending16kState = use16k;
-
-            clearTimeout(resolutionDebounceTimer);
-            resolutionDebounceTimer = setTimeout(() => {
-                applyResolution(targetIndex, use16k);
-            }, RESOLUTION_DEBOUNCE_DELAY);
-        }
-
-        // Return current active filename for debug
-        if (current16kState) {
-            return get16kTileAtCenter();
-        }
-        return layers[currentResIndex].src.split('/').pop();
-    }
-
-    // Determine which 16K tile is at the center of the screen
-    function get16kTileAtCenter() {
-        const rect = mapContainer.getBoundingClientRect();
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-
-        // Convert screen center to map coordinates (percentage)
-        const contentX = (centerX - currentX) / currentScale;
-        const contentY = (centerY - currentY) / currentScale;
-        const mapWidth = contentWrapper.offsetWidth;
-        const mapHeight = contentWrapper.offsetHeight;
-        const percentX = (contentX / mapWidth) * 100;
-        const percentY = (contentY / mapHeight) * 100;
-
-        // Determine which quadrant (tile) the center is in
-        // aa = top-left (0-50%, 0-50%)
-        // ab = top-right (50-100%, 0-50%)
-        // ba = bottom-left (0-50%, 50-100%)
-        // bb = bottom-right (50-100%, 50-100%)
-        let tileName = '';
-        if (percentY < 50) {
-            tileName = percentX < 50 ? '16k_aa.jpg' : '16k_ab.jpg';
-        } else {
-            tileName = percentX < 50 ? '16k_ba.jpg' : '16k_bb.jpg';
-        }
-
-        return tileName;
-    }
-
-    function applyResolution(index, use16k = false) {
-        currentResIndex = index;
-        current16kState = use16k;
-
-        // Activate target layer AND all below it
-        // Deactivate all above it
-        layers.forEach((layer, i) => {
-            if (i <= index) {
-                // Don't add active to base layer, it has its own class
-                if (i > 0) {
-                    // If using 16k, hide the 8k layer (index 3)
-                    if (use16k && i === 3) {
-                        layer.element.classList.remove('active');
-                    } else {
-                        layer.element.classList.add('active');
-                    }
-                }
-            } else {
-                layer.element.classList.remove('active');
-            }
-        });
-
-        // Show/hide 16k tiles
-        if (use16k) {
-            tiles16kContainer.style.opacity = '1';
-        } else {
-            tiles16kContainer.style.opacity = '0';
-        }
-
-        // Update debug panel immediately to show change
-        const currentBgName = use16k ? get16kTileAtCenter() : layers[currentResIndex].src.split('/').pop();
-        updateDebugPanel(currentBgName);
-    }
 
     // Initial Render
     // renderPoints(); // Moved after moveToLocation definition
