@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
     base: '/',
     build: {
+        target: 'esnext', // Target modern browsers to avoid legacy polyfills using eval
         // Temporary: Don't empty dist to avoid Dropbox locking
         emptyOutDir: false,
         // Disable minification features that use eval()
@@ -18,6 +19,14 @@ export default defineConfig({
                 unsafe_proto: false,
                 unsafe_regexp: false,
                 unsafe_undefined: false
+            },
+            mangle: {
+                // Ensure no eval usage in mangling
+                eval: false
+            },
+            format: {
+                // Remove comments
+                comments: false
             }
         },
         // Ensure source maps don't use eval

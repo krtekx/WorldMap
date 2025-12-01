@@ -1047,7 +1047,7 @@ body {
 }
 
 .start-game-btn:active {
-    transform: translate(-50%, -50%) scale(0.95);
+    transform: translateX(-50%) scale(0.95);
 }
 
 @keyframes fadeInUp {
