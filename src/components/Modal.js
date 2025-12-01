@@ -1,5 +1,18 @@
 import { getGemHintForLocation, revealGemType, isGemRevealed } from '../gemHints.js';
 import { gems } from '../gems.js';
+import gem01 from '../assets/gems/gem_01.png'
+import gem02 from '../assets/gems/gem_02.png'
+import gem03 from '../assets/gems/gem_03.png'
+import gem04 from '../assets/gems/gem_04.png'
+import gem05 from '../assets/gems/gem_05.png'
+
+const gemImages = {
+  1: gem01,
+  2: gem02,
+  3: gem03,
+  4: gem04,
+  5: gem05
+};
 
 let currentModal = null;
 
@@ -28,7 +41,7 @@ export function openModal(data, container, allLocations = [], onNavigate = null)
     gemHintHtml = `
         <div class="gem-hint-bar">
             <div class="gem-hint-content">
-                <img src="/assets/gems/gem_0${gemType}.png" alt="Gem Hint" class="gem-hint-icon">
+                <img src="${gemImages[gemType]}" alt="Gem Hint" class="gem-hint-icon">
                 <div class="gem-hint-text">
                     <strong>Hidden Gem Detected!</strong>
                     <span>This location holds a clue to finding rare crystals.</span>

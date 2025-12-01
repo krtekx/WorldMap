@@ -1,3 +1,28 @@
+import item1 from './assets/images/item_1.jpg'
+import item2 from './assets/images/item_2.jpg'
+import item3 from './assets/images/item_3.jpg'
+import item4 from './assets/images/item_4.jpg'
+import item5 from './assets/images/item_5.jpg'
+import item7 from './assets/images/item_7.jpg'
+import item8 from './assets/images/item_8.jpg'
+import item9 from './assets/images/item_9.jpg'
+import item10 from './assets/images/item_10.jpg'
+import item11 from './assets/images/item_11.jpg'
+import item12 from './assets/images/item_12.jpg'
+import item13 from './assets/images/item_13.jpg'
+import item14 from './assets/images/item_14.jpg'
+import item15 from './assets/images/item_15.jpg'
+import item16 from './assets/images/item_16.jpg'
+import item17 from './assets/images/item_17.jpg'
+import item18 from './assets/images/item_18.jpg'
+import item19 from './assets/images/item_19.jpg'
+import item20 from './assets/images/item_20.jpg'
+import item21 from './assets/images/item_21.jpg'
+import item22 from './assets/images/item_22.jpg'
+import item23 from './assets/images/item_23.jpg'
+import item24 from './assets/images/item_24.jpg'
+import item25 from './assets/images/item_25.jpg'
+
 export const locations = [
     {
         "id": 1,
@@ -7,7 +32,7 @@ export const locations = [
         "lng": 16.6647,
         "title": "Moravská Třebová",
         "description": "Domov L. V. Holzmaistera a sídlo muzea, kam zasílal své sbírky.",
-        "image": "/assets/images/item_24.jpg",
+        "image": item24,
         "region": "Europe",
         "visitDate": "1885"
     },
@@ -19,7 +44,7 @@ export const locations = [
         "lng": 29.9187,
         "title": "Egypt - Alexandrie",
         "description": "Starověký přístav. Získání koptských textilií.",
-        "image": "/assets/images/item_18.jpg",
+        "image": item18,
         "region": "North Africa",
         "visitDate": "1891"
     },
@@ -31,7 +56,7 @@ export const locations = [
         "lng": 31.2357,
         "title": "Egypt - Káhira",
         "description": "Centrum obchodu na Blízkém východě. Nákup starožitností na trhu Chán al-Chalílí.",
-        "image": "/assets/images/item_17.jpg",
+        "image": item17,
         "region": "North Africa",
         "visitDate": "1891"
     },
@@ -43,7 +68,7 @@ export const locations = [
         "lng": 32.5498,
         "title": "Egypt - Suez",
         "description": "Průjezd Suezským průplavem, klíčovým bodem cesty na východ.",
-        "image": "/assets/images/item_19.jpg",
+        "image": item19,
         "region": "North Africa",
         "visitDate": "1891"
     },
@@ -55,7 +80,7 @@ export const locations = [
         "lng": 45.0187,
         "title": "Jemen - Aden",
         "description": "Důležitá zastávka pro doplnění uhlí. Nákup aromatických pryskyřic.",
-        "image": "/assets/images/item_20.jpg",
+        "image": item20,
         "region": "Middle East",
         "visitDate": "1891"
     },
@@ -67,7 +92,7 @@ export const locations = [
         "lng": 79.8612,
         "title": "Srí Lanka - Kolombo",
         "description": "Zastávka na cestě do Asie. Nákup drahokamů a tradičních masek.",
-        "image": "/assets/images/item_7.jpg",
+        "image": item7,
         "region": "South Asia",
         "visitDate": "1891"
     },
@@ -79,7 +104,7 @@ export const locations = [
         "lng": 103.8198,
         "title": "Singapur",
         "description": "Křižovatka obchodních cest. Zde se Holzmaister setkal s obchodníky z celého světa.",
-        "image": "/assets/images/item_12.jpg",
+        "image": item12,
         "region": "South East Asia",
         "visitDate": "1891"
     },
@@ -91,7 +116,7 @@ export const locations = [
         "lng": 106.8456,
         "title": "Indonésie - Batávie (Jakarta)",
         "description": "Nizozemská východní Indie. Sběr krisů (tradičních dýk) a batikovaných látek.",
-        "image": "/assets/images/item_11.jpg",
+        "image": item11,
         "region": "South East Asia",
         "visitDate": "1891"
     },
@@ -103,7 +128,7 @@ export const locations = [
         "lng": 100.5018,
         "title": "Thajsko - Bangkok",
         "description": "Království Siam. Návštěva chrámů a získání sošky Buddhy.",
-        "image": "/assets/images/item_13.jpg",
+        "image": item13,
         "region": "South East Asia",
         "visitDate": "1892"
     },
@@ -115,7 +140,7 @@ export const locations = [
         "lng": 72.8777,
         "title": "Indie - Bombaj",
         "description": "Vstupní brána do Indie. Fascinace rušnými trhy a architekturou viktoriánské gotiky.",
-        "image": "/assets/images/item_8.jpg",
+        "image": item8,
         "region": "South Asia",
         "visitDate": "1892"
     },
@@ -127,7 +152,7 @@ export const locations = [
         "lng": 77.1025,
         "title": "Indie - Dillí",
         "description": "Návštěva Červené pevnosti a získání mogulskejch miniatur.",
-        "image": "/assets/images/item_9.jpg",
+        "image": item9,
         "region": "South Asia",
         "visitDate": "1892"
     },
@@ -139,7 +164,7 @@ export const locations = [
         "lng": 82.9739,
         "title": "Indie - Váránasí",
         "description": "Posvátné město na Ganze. Pozorování rituálů a nákup rituálních nádob.",
-        "image": "/assets/images/item_10.jpg",
+        "image": item10,
         "region": "South Asia",
         "visitDate": "1892"
     },
@@ -151,7 +176,7 @@ export const locations = [
         "lng": 121.4737,
         "title": "Čína - Šanghaj",
         "description": "Rušný přístav a brána do Číny. Sbírka obsahuje porcelánové vázy z dynastie Čching zakoupené na nábřeží Bund.",
-        "image": "/assets/images/item_4.jpg",
+        "image": item4,
         "region": "East Asia",
         "visitDate": "1892"
     },
@@ -163,7 +188,7 @@ export const locations = [
         "lng": 114.1694,
         "title": "Čína - Hongkong",
         "description": "Britská kolonie v době návštěvy. Holzmaistera fascinovala směs východní a západní architektury.",
-        "image": "/assets/images/item_5.jpg",
+        "image": item5,
         "region": "East Asia",
         "visitDate": "1892"
     },
@@ -187,7 +212,7 @@ export const locations = [
         "lng": 139.638,
         "title": "Japonsko - Jokohama",
         "description": "Hlavní přístav, kterým Holzmaister připlul do Japonska. Zde zakoupil 'Japonské album' s ručně kolorovanými fotografiemi.",
-        "image": "/assets/images/item_3.jpg",
+        "image": item3,
         "region": "East Asia",
         "visitDate": "1893"
     },
@@ -199,7 +224,7 @@ export const locations = [
         "lng": 139.6503,
         "title": "Japonsko - Tokio",
         "description": "Císařské město, kde Holzmaister strávil několik týdnů. Zde získal vzácné lakované krabičky a samurajské doplňky.",
-        "image": "/assets/images/item_1.jpg",
+        "image": item1,
         "region": "East Asia",
         "visitDate": "1893"
     },
@@ -211,7 +236,7 @@ export const locations = [
         "lng": 135.7681,
         "title": "Japonsko - Kjóto",
         "description": "Starobylé hlavní město. Fotografie zachycuje chrám Kinkaku-dži, který Holzmaister navštívil během období kvetoucích sakur.",
-        "image": "/assets/images/item_2.jpg",
+        "image": item2,
         "region": "East Asia",
         "visitDate": "1893"
     },
@@ -223,7 +248,7 @@ export const locations = [
         "lng": 178.065,
         "title": "Fidži",
         "description": "Exotická zastávka v Pacifiku. Ukázky domorodého umění.",
-        "image": "/assets/images/item_25.jpg",
+        "image": item25,
         "region": "Oceania",
         "visitDate": "1893"
     },
@@ -235,7 +260,7 @@ export const locations = [
         "lng": 174.7633,
         "title": "Nový Zéland - Auckland",
         "description": "Setkání s Maorskou kulturou. Do sbírky přibyly řezby ze dřeva a nefritu.",
-        "image": "/assets/images/item_16.jpg",
+        "image": item16,
         "region": "Oceania",
         "visitDate": "1893"
     },
@@ -247,7 +272,7 @@ export const locations = [
         "lng": 151.2093,
         "title": "Austrálie - Sydney",
         "description": "Přístavní město v Oceánii. Získání domorodých artefaktů a bumerangů.",
-        "image": "/assets/images/item_14.jpg",
+        "image": item14,
         "region": "Australia",
         "visitDate": "1893"
     },
@@ -259,7 +284,7 @@ export const locations = [
         "lng": 144.9631,
         "title": "Austrálie - Melbourne",
         "description": "Bohaté město díky zlaté horečce. Návštěva botanických zahrad.",
-        "image": "/assets/images/item_15.jpg",
+        "image": item15,
         "region": "Australia",
         "visitDate": "1893"
     },
@@ -271,7 +296,7 @@ export const locations = [
         "lng": 35.2137,
         "title": "Jeruzalém",
         "description": "Svaté město. Získání upomínkových předmětů z olivového dřeva.",
-        "image": "/assets/images/item_21.jpg",
+        "image": item21,
         "region": "Middle East",
         "visitDate": "1894"
     },
@@ -283,7 +308,7 @@ export const locations = [
         "lng": 36.2765,
         "title": "Damašek",
         "description": "Jedno z nejstarších měst. Obdivování damašské oceli a látek.",
-        "image": "/assets/images/item_22.jpg",
+        "image": item22,
         "region": "Middle East",
         "visitDate": "1894"
     },
@@ -295,7 +320,7 @@ export const locations = [
         "lng": -74.006,
         "title": "New York",
         "description": "Dlouhodobé působení Holzmaistera v USA, odkud podporoval muzeum.",
-        "image": "/assets/images/item_23.jpg",
+        "image": item23,
         "region": "North America",
         "visitDate": "1895-1920"
     }
