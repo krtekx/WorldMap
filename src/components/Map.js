@@ -6,10 +6,7 @@ import { openGemModal } from './GemModal.js'
 import { initGemHints, isGemRevealed, resetGemSystem } from '../gemHints.js';
 
 // Import map assets for proper Vite bundling
-import map1k from '../assets/WorldMap_bg_1k.jpg'
-import map2k from '../assets/WorldMap_bg_2k.jpg'
-import map4k from '../assets/WorldMap_bg_4k.jpg'
-import map8k from '../assets/WorldMap_bg_8k.jpg'
+// Import map assets for proper Vite bundling
 import tile16kAA from '../assets/16k_aa.jpg'
 import tile16kAB from '../assets/16k_ab.jpg'
 import tile16kBA from '../assets/16k_ba.jpg'
@@ -77,14 +74,6 @@ export function initMap(mapContainer, modalContainer) {
     const bgContainer = document.createElement('div');
     bgContainer.classList.add('map-background-container');
 
-    // Dynamic Map Resolution - Layered Approach
-    const layers = [
-        { src: map1k, res: '1k', element: null },
-        { src: map2k, res: '2k', element: null },
-        { src: map4k, res: '4k', element: null },
-        { src: map8k, res: '8k', element: null }
-    ];
-
     // 16K tiles (4 quadrants)
     const tiles16k = [
         { src: tile16kAA, position: 'top-left', element: null },
@@ -92,25 +81,6 @@ export function initMap(mapContainer, modalContainer) {
         { src: tile16kBA, position: 'bottom-left', element: null },
         { src: tile16kBB, position: 'bottom-right', element: null }
     ];
-
-    // Create layers
-    layers.forEach((layer, index) => {
-        const img = document.createElement('img');
-        img.src = layer.src;
-        img.classList.add('map-layer');
-        img.dataset.res = layer.res;
-
-        // First layer is base
-        if (index === 0) {
-            img.classList.add('base-layer');
-        } else {
-            img.classList.add('overlay-layer');
-        }
-
-        img.ondragstart = (e) => e.preventDefault();
-        bgContainer.appendChild(img);
-        layer.element = img;
-    });
 
     // Create 16K tile container
     const tiles16kContainer = document.createElement('div');
@@ -124,9 +94,7 @@ export function initMap(mapContainer, modalContainer) {
         display: grid;
         grid-template-columns: 1fr 1fr;
         grid-template-rows: 1fr 1fr;
-        opacity: 0;
-        transition: opacity 0.5s ease-in-out;
-        z-index: 2;
+        z-index: 1;
     `;
 
     tiles16k.forEach(tile => {
@@ -142,50 +110,9 @@ export function initMap(mapContainer, modalContainer) {
 
     contentWrapper.appendChild(bgContainer);
 
-    // Resolution Switching Logic
-    let currentResIndex = 0;
-    let pendingResIndex = 0;
-    let current16kState = false;
-    let pending16kState = false;
-    let resolutionDebounceTimer = null;
-    const RESOLUTION_DEBOUNCE_DELAY = 300; // ms
+    // Resolution Switching Logic REMOVED - Always using 16k tiles
 
-    function updateMapResolution() {
-        let targetIndex = 0;
-        let use16k = false;
-
-        if (scale <= 1) {
-            targetIndex = 0; // 1k
-        } else if (scale <= 2) {
-            targetIndex = 1; // 2k
-        } else if (scale <= 4) {
-            targetIndex = 2; // 4k
-        } else if (scale <= 8) {
-            targetIndex = 3; // 8k
-        } else {
-            targetIndex = 3; // Keep 8k as base
-            use16k = true; // Add 16k tiles on top
-        }
-
-        // Debounce the switch - check both index AND 16k state
-        if (targetIndex !== pendingResIndex || use16k !== pending16kState) {
-            pendingResIndex = targetIndex;
-            pending16kState = use16k;
-
-            clearTimeout(resolutionDebounceTimer);
-            resolutionDebounceTimer = setTimeout(() => {
-                applyResolution(targetIndex, use16k);
-            }, RESOLUTION_DEBOUNCE_DELAY);
-        }
-
-        // Return current active filename for debug
-        if (current16kState) {
-            return get16kTileAtCenter();
-        }
-        return layers[currentResIndex].src.split('/').pop();
-    }
-
-    // Determine which 16K tile is at the center of the screen
+    // Determine which 16K tile is at the center of the screen (for debug only)
     function get16kTileAtCenter() {
         const rect = mapContainer.getBoundingClientRect();
         const centerX = rect.width / 2;
@@ -200,10 +127,6 @@ export function initMap(mapContainer, modalContainer) {
         const percentY = (contentY / mapHeight) * 100;
 
         // Determine which quadrant (tile) the center is in
-        // aa = top-left (0-50%, 0-50%)
-        // ab = top-right (50-100%, 0-50%)
-        // ba = bottom-left (0-50%, 50-100%)
-        // bb = bottom-right (50-100%, 50-100%)
         let tileName = '';
         if (percentY < 50) {
             tileName = percentX < 50 ? '16k_aa.jpg' : '16k_ab.jpg';
@@ -212,40 +135,6 @@ export function initMap(mapContainer, modalContainer) {
         }
 
         return tileName;
-    }
-
-    function applyResolution(index, use16k = false) {
-        currentResIndex = index;
-        current16kState = use16k;
-
-        // Activate target layer AND all below it
-        // Deactivate all above it
-        layers.forEach((layer, i) => {
-            if (i <= index) {
-                // Don't add active to base layer, it has its own class
-                if (i > 0) {
-                    // If using 16k, hide the 8k layer (index 3)
-                    if (use16k && i === 3) {
-                        layer.element.classList.remove('active');
-                    } else {
-                        layer.element.classList.add('active');
-                    }
-                }
-            } else {
-                layer.element.classList.remove('active');
-            }
-        });
-
-        // Show/hide 16k tiles
-        if (use16k) {
-            tiles16kContainer.style.opacity = '1';
-        } else {
-            tiles16kContainer.style.opacity = '0';
-        }
-
-        // Update debug panel immediately to show change
-        const currentBgName = use16k ? get16kTileAtCenter() : layers[currentResIndex].src.split('/').pop();
-        updateDebugPanel(currentBgName);
     }
 
     // Initial Render
@@ -569,7 +458,7 @@ export function initMap(mapContainer, modalContainer) {
         try {
             const response = await fetch('/production.json');
             productionData = await response.json();
-            updateDebugPanel(layers[currentResIndex].src.split('/').pop());
+            updateDebugPanel(get16kTileAtCenter());
         } catch (e) {
             console.error('Failed to load production data', e);
         }
@@ -652,7 +541,7 @@ export function initMap(mapContainer, modalContainer) {
         contentWrapper.style.transform = `translate(${currentX}px, ${currentY}px) scale(${currentScale})`;
 
         // Update Resolution based on current scale
-        const currentBgName = updateMapResolution();
+        const currentBgName = get16kTileAtCenter();
 
         // Update debug panel
         updateDebugPanel(currentBgName);
