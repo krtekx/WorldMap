@@ -86,11 +86,8 @@ export function initMap(mapContainer, modalContainer) {
     const tiles16kContainer = document.createElement('div');
     tiles16kContainer.classList.add('tiles-16k-container');
     tiles16kContainer.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
+        position: relative;
         width: 100%;
-        height: 100%;
         display: grid;
         grid-template-columns: 1fr 1fr;
         grid-template-rows: 1fr 1fr;
@@ -100,7 +97,7 @@ export function initMap(mapContainer, modalContainer) {
     tiles16k.forEach(tile => {
         const img = document.createElement('img');
         img.src = tile.src;
-        img.style.cssText = 'width: 100%; height: 100%; display: block; object-fit: cover;';
+        img.style.cssText = 'width: 100%; height: auto; display: block; object-fit: cover;';
         img.ondragstart = (e) => e.preventDefault();
         tiles16kContainer.appendChild(img);
         tile.element = img;
