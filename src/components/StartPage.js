@@ -1,3 +1,6 @@
+import startJourneyBg from '../assets/start_jorney.png';
+import startButtonImg from '../assets/start_button.png';
+
 export class StartPage {
     constructor(onStart) {
         this.onStart = onStart;
@@ -11,9 +14,9 @@ export class StartPage {
         this.overlay.classList.add('idle-screen-overlay');
         this.overlay.innerHTML = `
             <div class="start-game-container">
-                <img src="/assets/start_jorney.png" class="start-game-bg" alt="Start Journey">
+                <img src="${startJourneyBg}" class="start-game-bg" alt="Start Journey">
                 <button class="start-game-btn">
-                    <img src="/assets/start_button.png" alt="Start Game">
+                    <img src="${startButtonImg}" alt="Start Game">
                 </button>
             </div>
         `;

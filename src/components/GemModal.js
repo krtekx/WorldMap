@@ -1,14 +1,13 @@
 let currentGemModal = null;
 
-export function openGemModal(gem, container) {
+export function openGemModal(gem, container, gemImageSrc) {
     closeGemModal();
 
     const overlay = document.createElement('div');
     overlay.classList.add('gem-modal-overlay');
 
     // Determine gem image
-    const gemType = gem.type || ((gem.id % 5) + 1);
-    const gemImage = `/assets/gems/gem_0${gemType}.png`;
+    const gemImage = gemImageSrc;
 
     overlay.innerHTML = `
         <div class="gem-modal-content">

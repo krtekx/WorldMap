@@ -6,14 +6,29 @@ import { openGemModal } from './GemModal.js'
 import { initGemHints, isGemRevealed, resetGemSystem } from '../gemHints.js';
 
 // Import map assets for proper Vite bundling
-import map1k from '/assets/WorldMap_bg_1k.jpg'
-import map2k from '/assets/WorldMap_bg_2k.jpg'
-import map4k from '/assets/WorldMap_bg_4k.jpg'
-import map8k from '/assets/WorldMap_bg_8k.jpg'
-import tile16kAA from '/assets/16k_aa.jpg'
-import tile16kAB from '/assets/16k_ab.jpg'
-import tile16kBA from '/assets/16k_ba.jpg'
-import tile16kBB from '/assets/16k_bb.jpg'
+import map1k from '../assets/WorldMap_bg_1k.jpg'
+import map2k from '../assets/WorldMap_bg_2k.jpg'
+import map4k from '../assets/WorldMap_bg_4k.jpg'
+import map8k from '../assets/WorldMap_bg_8k.jpg'
+import tile16kAA from '../assets/16k_aa.jpg'
+import tile16kAB from '../assets/16k_ab.jpg'
+import tile16kBA from '../assets/16k_ba.jpg'
+import tile16kBB from '../assets/16k_bb.jpg'
+
+// Import gem assets
+import gem01 from '../assets/gems/gem_01.png'
+import gem02 from '../assets/gems/gem_02.png'
+import gem03 from '../assets/gems/gem_03.png'
+import gem04 from '../assets/gems/gem_04.png'
+import gem05 from '../assets/gems/gem_05.png'
+
+const gemImages = {
+    1: gem01,
+    2: gem02,
+    3: gem03,
+    4: gem04,
+    5: gem05
+};
 
 export function initMap(mapContainer, modalContainer) {
     // --- State ---
@@ -415,13 +430,13 @@ export function initMap(mapContainer, modalContainer) {
 
             // Set background image based on gem type
             const gemType = gem.type || ((gem.id % 5) + 1);
-            gemEl.style.backgroundImage = `url('/assets/gems/gem_0${gemType}.png')`;
+            gemEl.style.backgroundImage = `url('${gemImages[gemType]}')`;
 
             // Click handler
             gemEl.addEventListener('click', (e) => {
                 if (isEditMode || isAddingGems) return; // Don't open in edit mode
                 e.stopPropagation();
-                openGemModal(gem, modalContainer);
+                openGemModal(gem, modalContainer, gemImages[gemType]);
                 resetIdleTimer();
                 resetMapTimer();
             });
