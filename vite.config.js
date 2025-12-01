@@ -4,6 +4,9 @@ export default defineConfig({
     base: '/',
     build: {
         target: 'esnext', // Target modern browsers to avoid legacy polyfills using eval
+        modulePreload: {
+            polyfill: false // Disable module preload polyfill which uses eval
+        },
         // Temporary: Don't empty dist to avoid Dropbox locking
         emptyOutDir: false,
         // Disable minification features that use eval()
