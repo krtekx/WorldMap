@@ -10,9 +10,6 @@ import { initGemHints, isGemRevealed, resetGemSystem } from '../gemHints.js';
 import tile16kAA from '../assets/16k_aa.jpg'
 import tile16kAB from '../assets/16k_ab.jpg'
 import tile16kBA from '../assets/16k_ba.jpg'
-import tile16kAA from '../assets/16k_aa.jpg'
-import tile16kAB from '../assets/16k_ab.jpg'
-import tile16kBA from '../assets/16k_ba.jpg'
 import tile16kBB from '../assets/16k_bb.jpg'
 import map1k from '../assets/WorldMap_bg_1k.jpg'
 
