@@ -10,7 +10,11 @@ import { initGemHints, isGemRevealed, resetGemSystem } from '../gemHints.js';
 import tile16kAA from '../assets/16k_aa.jpg'
 import tile16kAB from '../assets/16k_ab.jpg'
 import tile16kBA from '../assets/16k_ba.jpg'
+import tile16kAA from '../assets/16k_aa.jpg'
+import tile16kAB from '../assets/16k_ab.jpg'
+import tile16kBA from '../assets/16k_ba.jpg'
 import tile16kBB from '../assets/16k_bb.jpg'
+import map1k from '../assets/WorldMap_bg_1k.jpg'
 
 // Import gem assets
 import gem01 from '../assets/gems/gem_01.png'
@@ -869,6 +873,19 @@ export function initMap(mapContainer, modalContainer) {
     // Create Reference Overlay
     const refOverlay = document.createElement('div');
     refOverlay.classList.add('reference-overlay');
+    refOverlay.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('${map1k}');
+        background-size: cover;
+        z-index: 10;
+        opacity: 0;
+        pointer-events: none;
+        display: none;
+    `;
     contentWrapper.insertBefore(refOverlay, contentWrapper.firstChild); // Insert before points
 
     // Create Transform Handles
@@ -1057,6 +1074,15 @@ export function initMap(mapContainer, modalContainer) {
     // Toggle Reference Overlay
     ui.querySelector('.btn-toggle-ref').addEventListener('click', () => {
         refOverlay.classList.toggle('active');
+        if (refOverlay.classList.contains('active')) {
+            refOverlay.style.display = 'block';
+            refOverlay.style.pointerEvents = 'auto';
+            refOverlay.style.opacity = refOpacity;
+        } else {
+            refOverlay.style.display = 'none';
+            refOverlay.style.pointerEvents = 'none';
+            refOverlay.style.opacity = 0;
+        }
     });
 
     // Toggle Add Gems Mode
