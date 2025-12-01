@@ -845,8 +845,8 @@ export function initMap(mapContainer, modalContainer) {
     });
 
     // Ensure initial clamp after images load
-    if (layers[0].element) {
-        layers[0].element.onload = () => {
+    if (tiles16k[0].element) {
+        tiles16k[0].element.onload = () => {
             clampTargetPosition();
             // Force immediate update
             currentX = targetX;
