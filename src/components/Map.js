@@ -97,9 +97,45 @@ export function initMap(mapContainer, modalContainer) {
 
     tiles16k.forEach(tile => {
         const img = document.createElement('img');
-        img.src = tile.src;
-        img.style.cssText = 'width: 100%; height: auto; display: block; object-fit: cover;';
+        img.style.cssText = 'width: 100%; height: auto; display: block; object-fit: cover; opacity: 0; transition: opacity 0.5s ease;';
         img.ondragstart = (e) => e.preventDefault();
+
+        // Error handling
+        img.onerror = (e) => {
+            console.error(`Failed to load 16k tile: ${tile.src}`, e);
+            img.style.border = '5px solid red';
+            img.alt = 'Image failed to load';
+
+            // Try to reload with cache busting after 1 second
+            setTimeout(() => {
+                console.log(`Retrying load for ${tile.src}...`);
+                img.src = `${tile.src}?t=${Date.now()}`;
+            }, 1000);
+        };
+
+        // Load handling
+        const handleLoad = () => {
+            if (img.getAttribute('data-loaded') === 'true') return;
+            console.log(`Successfully loaded 16k tile: ${tile.src}`);
+            img.style.opacity = '1';
+            img.setAttribute('data-loaded', 'true');
+        };
+
+        img.onload = handleLoad;
+
+        // Set src AFTER attaching handlers to avoid race condition
+        img.src = tile.src;
+
+        // Robust check for completion
+        const checkComplete = () => {
+            if (img.complete && img.naturalHeight !== 0) {
+                handleLoad();
+            } else if (!img.getAttribute('data-loaded')) {
+                requestAnimationFrame(checkComplete);
+            }
+        };
+        checkComplete();
+
         tiles16kContainer.appendChild(img);
         tile.element = img;
     });
